@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router';
 import {
   Search,
   SlidersHorizontal,
@@ -189,7 +190,7 @@ export function ProductCatalog() {
         <div className="bg-white rounded-xl border-2 border-gray-200 hover:border-[#9146FF] transition-all duration-300 overflow-hidden group">
           <div className="flex flex-col sm:flex-row gap-4 p-4">
             {/* Image */}
-            <div className="relative w-full sm:w-48 h-48 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+            <Link to={`/producto/${product.id}`} className="relative w-full sm:w-48 h-48 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg overflow-hidden flex-shrink-0">
               <ImageWithFallback
                 src={product.image}
                 alt={product.name}
@@ -203,16 +204,18 @@ export function ProductCatalog() {
                   {product.badge}
                 </div>
               )}
-              <button className="absolute top-2 right-2 w-9 h-9 bg-white/90 hover:bg-white rounded-full flex items-center justify-center transition-all shadow-md opacity-0 group-hover:opacity-100">
-                <Heart className="w-5 h-5 text-gray-600 hover:text-red-500" />
-              </button>
-            </div>
+            </Link>
+            <button className="absolute top-2 right-2 w-9 h-9 bg-white/90 hover:bg-white rounded-full flex items-center justify-center transition-all shadow-md opacity-0 group-hover:opacity-100 z-10">
+              <Heart className="w-5 h-5 text-gray-600 hover:text-red-500" />
+            </button>
 
             {/* Content */}
             <div className="flex-grow flex flex-col justify-between">
               <div>
                 <div className="text-xs font-semibold text-[#9146FF] mb-1">{product.category}</div>
-                <h3 className="font-bold text-gray-900 text-lg mb-2">{product.name}</h3>
+                <Link to={`/producto/${product.id}`}>
+                  <h3 className="font-bold text-gray-900 text-lg mb-2 hover:text-[#9146FF] transition-colors">{product.name}</h3>
+                </Link>
 
                 {/* Rating */}
                 <div className="flex items-center gap-2 mb-3">
@@ -254,9 +257,9 @@ export function ProductCatalog() {
                   )}
                 </div>
                 <div className="flex gap-2">
-                  <button className="flex-1 sm:flex-none px-6 py-3 bg-white border-2 border-[#9146FF] text-[#9146FF] rounded-lg font-semibold hover:bg-[#F5F0FF] transition-all">
+                  <Link to={`/producto/${product.id}`} className="flex-1 sm:flex-none px-6 py-3 bg-white border-2 border-[#9146FF] text-[#9146FF] rounded-lg font-semibold hover:bg-[#F5F0FF] transition-all text-center">
                     Ver detalles
-                  </button>
+                  </Link>
                   <button className="flex-1 sm:flex-none px-6 py-3 bg-[#9146FF] text-white rounded-lg font-semibold hover:bg-[#772CE8] transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2">
                     <ShoppingCart className="w-5 h-5" />
                     Agregar
@@ -272,7 +275,7 @@ export function ProductCatalog() {
     return (
       <div className="bg-white rounded-xl border-2 border-gray-200 hover:border-[#9146FF] hover:shadow-xl transition-all duration-300 overflow-hidden group flex flex-col">
         {/* Image */}
-        <div className="relative aspect-square bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
+        <Link to={`/producto/${product.id}`} className="relative aspect-square bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden block">
           <ImageWithFallback
             src={product.image}
             alt={product.name}
@@ -286,17 +289,19 @@ export function ProductCatalog() {
               {product.badge}
             </div>
           )}
-          <button className="absolute top-3 right-3 w-9 h-9 bg-white/90 hover:bg-white rounded-full flex items-center justify-center transition-all shadow-md opacity-0 group-hover:opacity-100">
-            <Heart className="w-5 h-5 text-gray-600 hover:text-red-500" />
-          </button>
-        </div>
+        </Link>
+        <button className="absolute top-3 right-3 w-9 h-9 bg-white/90 hover:bg-white rounded-full flex items-center justify-center transition-all shadow-md opacity-0 group-hover:opacity-100 z-10">
+          <Heart className="w-5 h-5 text-gray-600 hover:text-red-500" />
+        </button>
 
         {/* Content */}
         <div className="p-5 flex flex-col flex-grow">
           <div className="text-xs font-semibold text-[#9146FF] mb-1">{product.category}</div>
-          <h3 className="font-bold text-gray-900 mb-2 line-clamp-2 min-h-[3rem]">
-            {product.name}
-          </h3>
+          <Link to={`/producto/${product.id}`}>
+            <h3 className="font-bold text-gray-900 mb-2 line-clamp-2 min-h-[3rem] hover:text-[#9146FF] transition-colors">
+              {product.name}
+            </h3>
+          </Link>
 
           {/* Rating */}
           <div className="flex items-center gap-2 mb-3">
