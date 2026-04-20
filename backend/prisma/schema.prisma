@@ -1,0 +1,182 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+// USUARIOS
+
+
+model Usuario {
+  id                Int       @id @default(autoincrement())
+  email             String    @unique
+  contraseñaHash    String
+  googleId          String?   @unique
+  rol               String    @default("CLIENTE")
+  primerNombre      String
+  segundoNombre     String?
+  primerApellido    String
+  segundoApellido   String?
+  telefono          String?
+  fechaCreacion     DateTime  @default(now())
+
+  direcciones       Direccion[]
+  carrito           Carrito?
+  ordenes           Orden[]
+}
+
+
+// DIRECCIONES
+
+
+model Direccion {
+  id            Int     @id @default(autoincrement())
+  usuarioId     Int
+  direccion     String
+  ciudad        String?
+  departamento  String?
+  pais          String?
+  codigoPostal  String?
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+}
+
+
+// CATEGORIAS
+
+
+model Categoria {
+  id               Int          @id @default(autoincrement())
+  nombre           String
+  categoriaPadreId Int?
+  fechaCreacion    DateTime     @default(now())
+
+  categoriaPadre   Categoria?   @relation("Subcategorias", fields: [categoriaPadreId], references: [id])
+  subcategorias    Categoria[]  @relation("Subcategorias")
+
+  productos        Producto[]
+}
+
+
+// PRODUCTOS
+
+
+model Producto {
+  id               Int        @id @default(autoincrement())
+  nombre           String
+  descripcion      String?
+  precio           Decimal
+  stock            Int        @default(0)
+  categoriaId      Int?
+  tipo             String?
+  fechaCreacion    DateTime   @default(now())
+
+  categoria        Categoria? @relation(fields: [categoriaId], references: [id])
+
+  imagenes         ImagenProducto[]
+  especificaciones EspecificacionProducto[]
+  itemsCarrito     ItemCarrito[]
+  itemsOrden       ItemOrden[]
+}
+
+
+// IMAGENES DE PRODUCTO
+
+
+model ImagenProducto {
+  id          Int     @id @default(autoincrement())
+  productoId  Int
+  url         String
+
+  producto Producto @relation(fields: [productoId], references: [id], onDelete: Cascade)
+}
+
+
+// ESPECIFICACIONES DE PRODUCTO
+
+
+model EspecificacionProducto {
+  id          Int     @id @default(autoincrement())
+  productoId  Int
+  clave       String
+  valor       String
+
+  producto Producto @relation(fields: [productoId], references: [id], onDelete: Cascade)
+}
+
+// CARRITO
+
+
+model Carrito {
+  id             Int        @id @default(autoincrement())
+  usuarioId      Int        @unique
+  fechaCreacion  DateTime   @default(now())
+
+  usuario Usuario      @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  items   ItemCarrito[]
+}
+
+
+// ITEMS DEL CARRITO
+
+
+model ItemCarrito {
+  id          Int     @id @default(autoincrement())
+  carritoId   Int
+  productoId  Int
+  cantidad    Int
+
+  carrito  Carrito  @relation(fields: [carritoId], references: [id], onDelete: Cascade)
+  producto Producto @relation(fields: [productoId], references: [id])
+}
+
+
+// ORDENES
+
+
+model Orden {
+  id               Int        @id @default(autoincrement())
+  usuarioId        Int
+  total            Decimal
+  estado           String     @default("PENDIENTE")
+  direccionEnvio   String
+  fechaCreacion    DateTime   @default(now())
+
+  usuario Usuario     @relation(fields: [usuarioId], references: [id])
+  items   ItemOrden[]
+}
+
+
+// ITEMS DE ORDEN
+
+model ItemOrden {
+  id          Int     @id @default(autoincrement())
+  ordenId     Int
+  productoId  Int
+  cantidad    Int
+  precio      Decimal
+
+  orden    Orden    @relation(fields: [ordenId], references: [id], onDelete: Cascade)
+  producto Producto @relation(fields: [productoId], references: [id])
+}
+
+
+// IMPORTACIONES
+
+
+model Importacion {
+  id             Int      @id @default(autoincrement())
+  nombre         String
+  telefono       String
+  email          String?
+  producto       String
+  descripcion    String?
+  cantidad       Int?
+  presupuesto    Decimal?
+  estado         String   @default("PENDIENTE")
+  fechaCreacion  DateTime @default(now())
+}
