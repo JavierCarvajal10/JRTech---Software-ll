@@ -3,10 +3,9 @@ import { Root } from "./pages/Root";
 import { Home } from "./pages/Home";
 import { Catalog } from "./pages/Catalog";
 //import { Auth } from "./pages/Auth";
-//import { ProductDetail } from "./pages/ProductDetail";
+import { ProductDetail } from "./pages/ProductDetail";
 //import { Importaciones } from "./pages/Importaciones";
-import { BuildPC } from "./pages/BuildPC";
-import { Cart } from "./pages/Cart";
+import { BuildPC } from "./pages/BuildPC"
 
 export const router = createBrowserRouter([
   {
@@ -15,11 +14,10 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <Home /> },
       { path: "catalogo", element: <Catalog /> },
-//      { path: "producto/:id", element: <ProductDetail /> },
- //     { path: "importaciones", element: <Importaciones /> },
-  //    { path: "login", element: <Auth /> },
+      { path: "producto/:id", element: <ProductDetail /> },
+  //  { path: "importaciones", element: <Importaciones /> },
+  // { path: "login", element: <Auth /> },
       { path: "arma-tu-pc", element: <BuildPC /> },
-      { path: "carrito", element: <Cart /> },
     ],
   },
 ]);
