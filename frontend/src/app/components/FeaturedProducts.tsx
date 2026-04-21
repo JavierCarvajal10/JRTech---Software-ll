@@ -1,6 +1,9 @@
-import { ShoppingCart, CreditCard, ChevronRight } from 'lucide-react';
+import { ShoppingCart, ChevronRight } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { Link } from 'react-router';
+import { useState } from 'react';
+import { useCart } from '../context/CartContext';
+import { useToast } from '../context/ToastContext';
 
 interface Product {
   id: number;
@@ -16,6 +19,10 @@ interface Product {
 }
 
 export function FeaturedProducts() {
+  const { addToCart } = useCart();
+  const { showToast } = useToast();
+  const [selectedCategory, setSelectedCategory] = useState('Todos');
+
   const products: Product[] = [
     {
       id: 1,
@@ -24,7 +31,7 @@ export function FeaturedProducts() {
       subcategory: 'IPHONE',
       price: 4299000,
       originalPrice: 4800000,
-      image: 'https://images.unsplash.com/photo-1695619575414-1ce52a163291?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxpcGhvbmUlMjAxNSUyMHBybyUyMHRpdGFuaXVtfGVufDF8fHx8MTc3MzU5MjQzMnww&ixlib=rb-4.1.0&q=80&w=1080',
+      image: 'https://images.unsplash.com/photo-1695619575474-9b45e37bc1e6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxpcGhvbmUlMjAxNSUyMHBybyUyMHRpdGFuaXVtfGVufDF8fHx8MTc3NjczNTE4NHww&ixlib=rb-4.1.0&q=80&w=1080',
       badge: 'destacado',
       stock: 5,
       badgeColor: '#9146FF'
@@ -110,13 +117,26 @@ export function FeaturedProducts() {
   ];
 
   const categories = [
-    { name: 'Todos', active: true },
-    { name: 'Apple', icon: '🍎' },
-    { name: 'Laptops', icon: '💻' },
-    { name: 'GPU', icon: '🎮' },
-    { name: 'Audio', icon: '🎧' },
-    { name: 'Accesorios', icon: '⚡' }
+    { name: 'Todos', filterKey: 'all' },
+    { name: 'Apple', filterKey: 'APPLE' },
+    { name: 'Laptops', filterKey: 'BOARDS' },
+    { name: 'GPU', filterKey: 'GPU' },
+    { name: 'Audio', filterKey: 'AUDIO' },
+    { name: 'Accesorios', filterKey: 'ACCESORIOS' }
   ];
+
+  // Filter products based on selected category
+  const filteredProducts = selectedCategory === 'Todos'
+    ? products
+    : products.filter(product => {
+        const categoryKey = categories.find(c => c.name === selectedCategory)?.filterKey;
+        if (categoryKey === 'APPLE') return product.category.includes('APPLE');
+        if (categoryKey === 'BOARDS') return product.category.includes('BOARDS');
+        if (categoryKey === 'GPU') return product.category.includes('GPU');
+        if (categoryKey === 'AUDIO') return product.category.includes('AUDÍ') || product.category.includes('MICRÓ');
+        if (categoryKey === 'ACCESORIOS') return product.category.includes('ALMACENAMIENTO');
+        return false;
+      });
 
   const formatPrice = (price: number) => {
     return `$${price.toLocaleString('es-CO')}`;
@@ -157,13 +177,13 @@ export function FeaturedProducts() {
           {categories.map((category, index) => (
             <button
               key={index}
-              className={`px-5 py-2.5 rounded-full font-medium transition-all duration-200 ${
-                category.active
-                  ? 'bg-[#9146FF] text-white shadow-md hover:bg-[#772CE8]'
-                  : 'bg-white border-2 border-gray-300 text-gray-700 hover:border-[#9146FF] hover:text-[#9146FF]'
+              onClick={() => setSelectedCategory(category.name)}
+              className={`px-5 py-2.5 rounded-full font-semibold transition-all duration-200 hover:scale-105 active:scale-95 ${
+                selectedCategory === category.name
+                  ? 'bg-[#9146FF] text-white shadow-lg hover:bg-[#772CE8]'
+                  : 'bg-white border-2 border-gray-300 text-gray-700 hover:border-[#9146FF] hover:text-[#9146FF] hover:shadow-md'
               }`}
             >
-              {category.icon && <span className="mr-2">{category.icon}</span>}
               {category.name}
             </button>
           ))}
@@ -171,32 +191,43 @@ export function FeaturedProducts() {
 
         {/* Products Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          {products.map((product) => (
+          {filteredProducts.map((product) => (
             <div 
               key={product.id}
               className="bg-white rounded-2xl border-2 border-gray-200 overflow-hidden hover:border-[#9146FF] hover:shadow-xl transition-all duration-300 group flex flex-col"
             >
               {/* Image Container */}
-              <div className="relative aspect-square bg-gradient-to-br from-gray-50 to-gray-100 p-6 overflow-hidden">
+              <Link to={`/producto/${product.id}`} className="relative aspect-square bg-gradient-to-br from-gray-50 to-gray-100 p-6 overflow-hidden block">
+                {/* Badge */}
+                {product.badge && (
+                  <div
+                    className="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-bold text-white shadow-md z-10"
+                    style={{ backgroundColor: product.badgeColor }}
+                  >
+                    {getBadgeLabel(product.badge)}
+                  </div>
+                )}
                 {/* Product Image */}
                 <ImageWithFallback
                   src={product.image}
                   alt={product.name}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
-              </div>
+              </Link>
 
               {/* Content */}
               <div className="p-5 flex flex-col flex-grow">
                 {/* Category */}
-                <div className="text-xs font-semibold text-gray-500 mb-1">
-                  {product.category} {product.subcategory && `· ${product.subcategory}`}
+                <div className="text-xs font-semibold text-[#9146FF] mb-1 uppercase">
+                  {product.category}
                 </div>
 
                 {/* Product Name */}
-                <h3 className="font-bold text-gray-900 mb-3 line-clamp-2 min-h-[3rem]">
-                  {product.name}
-                </h3>
+                <Link to={`/producto/${product.id}`}>
+                  <h3 className="font-bold text-gray-900 mb-3 line-clamp-2 min-h-[3rem] hover:text-[#9146FF] transition-colors">
+                    {product.name}
+                  </h3>
+                </Link>
 
                 {/* Price */}
                 <div className="mb-3">
@@ -214,21 +245,26 @@ export function FeaturedProducts() {
                 <div className="flex items-center gap-2 mb-4">
                   <div className="w-2 h-2 rounded-full bg-green-500"></div>
                   <span className="text-sm text-green-600 font-medium">
-                    En stock · {product.stock} {product.stock === 1 ? 'unidad' : 'unidades'}
+                    {product.stock} en stock
                   </span>
                 </div>
 
-                {/* Action Buttons */}
-                <div className="grid grid-cols-2 gap-3 mt-auto">
-                  <button className="flex items-center justify-center gap-2 px-4 py-3 bg-white border-2 border-[#9146FF] text-[#9146FF] rounded-xl font-semibold hover:bg-[#F5F0FF] transition-all group/btn">
-                    <ShoppingCart className="w-5 h-5 group-hover/btn:scale-110 transition-transform" />
-                    <span className="text-sm">Carrito</span>
-                  </button>
-                  <button className="flex items-center justify-center gap-2 px-4 py-3 bg-[#9146FF] text-white rounded-xl font-semibold hover:bg-[#772CE8] transition-all shadow-md hover:shadow-lg hover:scale-105">
-                    <CreditCard className="w-5 h-5" />
-                    <span className="text-sm">Comprar</span>
-                  </button>
-                </div>
+                {/* Action Button */}
+                <button
+                  onClick={() => {
+                    addToCart({
+                      id: product.id,
+                      name: product.name,
+                      price: product.price,
+                      image: product.image
+                    });
+                    showToast(product.name);
+                  }}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#9146FF] text-white rounded-xl font-semibold hover:bg-[#772CE8] active:scale-95 transition-all shadow-md hover:shadow-lg mt-auto"
+                >
+                  <ShoppingCart className="w-5 h-5" />
+                  <span>Agregar al carrito</span>
+                </button>
               </div>
             </div>
           ))}
@@ -246,12 +282,18 @@ export function FeaturedProducts() {
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-3">
-              <Link to="/catalogo" className="bg-white hover:bg-gray-50 text-gray-900 border-2 border-gray-300 font-semibold px-6 py-3 rounded-full transition-all shadow-sm hover:shadow-md whitespace-nowrap">
+              <Link
+                to="/catalogo"
+                className="bg-white hover:bg-gray-50 text-gray-900 border-2 border-gray-300 font-semibold px-6 py-3 rounded-full transition-all shadow-sm hover:shadow-md active:scale-95 whitespace-nowrap text-center"
+              >
                 Ver catálogo completo
               </Link>
-              <button className="bg-[#9146FF] hover:bg-[#772CE8] text-white font-semibold px-6 py-3 rounded-full transition-all shadow-md hover:shadow-lg hover:scale-105 whitespace-nowrap">
+              <Link
+                to="/importaciones"
+                className="bg-[#9146FF] hover:bg-[#772CE8] text-white font-semibold px-6 py-3 rounded-full transition-all shadow-md hover:shadow-lg hover:scale-105 active:scale-95 whitespace-nowrap text-center"
+              >
                 Solicitar importación
-              </button>
+              </Link>
             </div>
           </div>
         </div>
