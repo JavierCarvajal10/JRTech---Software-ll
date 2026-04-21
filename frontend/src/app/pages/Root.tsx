@@ -1,7 +1,7 @@
 import { Outlet, useLocation } from "react-router";
 import { Navbar } from "../components/Navbar";
 import { Footer } from "../components/Footer";
-//import { ChatBot } from "../components/ChatBot";
+import { ChatBot } from "../components/ChatBot";
 
 export function Root() {
   const location = useLocation();
@@ -12,6 +12,7 @@ export function Root() {
       {!isAuthPage && <Navbar />}
       <Outlet />
       {!isAuthPage && <Footer />}
+      {!isAuthPage && <ChatBot />}
     </div>
   );
 }
