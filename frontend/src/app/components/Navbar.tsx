@@ -45,10 +45,10 @@ export function Navbar() {
             </button>
 
             {/* Account Button */}
-            <button className="hidden md:flex items-center gap-2 px-4 py-2.5 text-gray-700 hover:text-[#9146FF] hover:bg-gray-50 rounded-lg transition-all">
+            <Link to="/login" className="hidden md:flex items-center gap-2 px-4 py-2.5 text-gray-700 hover:text-[#9146FF] hover:bg-gray-50 rounded-lg transition-all">
               <User className="w-5 h-5" />
               <span className="font-semibold">Cuenta</span>
-            </button>
+            </Link>
 
             {/* Mobile Menu Toggle */}
             <button
@@ -81,14 +81,12 @@ export function Navbar() {
             <a href="#" className="px-4 py-2 text-gray-700 hover:text-[#9146FF] hover:bg-gray-50 rounded-lg transition-all font-medium">
               Accesorios
             </a>
-            <a href="#" className="px-4 py-2 text-gray-700 hover:text-[#9146FF] hover:bg-gray-50 rounded-lg transition-all font-medium">
+            <Link to="/importaciones" className="px-4 py-2 text-gray-700 hover:text-[#9146FF] hover:bg-gray-50 rounded-lg transition-all font-medium">
               Importaciones
-            </a>
+            </Link>
 
             {/* CTA Button */}
-            <a href="#" className="ml-2 bg-gradient-to-r from-[#9146FF] to-[#772CE8] hover:from-[#772CE8] hover:to-[#9146FF] text-white px-6 py-2.5 rounded-lg transition-all font-bold shadow-lg shadow-[#9146FF]/30 hover:shadow-[#9146FF]/50 hover:scale-105">
-              Arma tú PC
-            </a>
+            <Link to="/arma-tu-pc" className="ml-2 bg-gradient-to-r from-[#9146FF] to-[#772CE8] hover:from-[#772CE8] hover:to-[#9146FF] text-white px-6 py-2.5 rounded-lg transition-all font-bold shadow-lg shadow-[#9146FF]/30 hover:shadow-[#9146FF]/50 hover:scale-105">Arma tú PC</Link>
           </div>
         </div>
       </div>
@@ -129,16 +127,16 @@ export function Navbar() {
               <a href="#" className="px-4 py-3 text-gray-700 hover:text-[#9146FF] hover:bg-gray-50 rounded-lg transition-all font-medium">
                 Accesorios
               </a>
-              <a href="#" className="px-4 py-3 text-gray-700 hover:text-[#9146FF] hover:bg-gray-50 rounded-lg transition-all font-medium">
+              <Link to="/importaciones" className="px-4 py-3 text-gray-700 hover:text-[#9146FF] hover:bg-gray-50 rounded-lg transition-all font-medium">
                 Importaciones
-              </a>
-              <a href="#" className="px-4 py-3 bg-gradient-to-r from-[#9146FF] to-[#772CE8] text-white hover:from-[#772CE8] hover:to-[#9146FF] rounded-lg transition-all font-bold">
+              </Link>
+              <Link to="/arma-tu-pc" className="px-4 py-3 bg-gradient-to-r from-[#9146FF] to-[#772CE8] text-white hover:from-[#772CE8] hover:to-[#9146FF] rounded-lg transition-all font-bold">
                 Arma tú PC
-              </a>
-              <a href="#" className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:text-[#9146FF] hover:bg-gray-50 rounded-lg transition-all font-medium border-t border-gray-200 mt-2 pt-4">
+              </Link>
+              <Link to="/login" className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:text-[#9146FF] hover:bg-gray-50 rounded-lg transition-all font-medium border-t border-gray-200 mt-2 pt-4">
                 <User className="w-5 h-5" />
                 <span>Mi Cuenta</span>
-              </a>
+              </Link>
             </div>
           </div>
         </div>

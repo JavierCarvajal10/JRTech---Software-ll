@@ -1,4 +1,5 @@
 import { Cpu, MemoryStick, Zap, Check, AlertTriangle } from 'lucide-react';
+import { Link } from 'react-router';
 
 interface ComponentCard {
   title: string;
@@ -75,9 +76,9 @@ export function PCBuilder() {
 
             {/* CTA Button */}
             <div className="flex justify-center lg:justify-start">
-              <button className="bg-[#9146FF] hover:bg-[#772CE8] text-white font-bold px-10 py-4 rounded-full transition-all duration-200 shadow-lg shadow-[#9146FF]/30 hover:shadow-xl hover:shadow-[#9146FF]/40 hover:scale-105">
+              <Link to="/arma-tu-pc" className="bg-[#9146FF] hover:bg-[#772CE8] text-white font-bold px-10 py-4 rounded-full transition-all duration-200 shadow-lg shadow-[#9146FF]/30 hover:shadow-xl hover:shadow-[#9146FF]/40 hover:scale-105">
                 Empezar a armar mi PC
-              </button>
+              </Link>
             </div>
           </div>
 
