@@ -1,5 +1,8 @@
 import { useState } from 'react';
-import { Package, MessageCircle, CheckCircle, DollarSign, Shield, Clock } from 'lucide-react';
+import { Package, MessageCircle, CheckCircle, DollarSign, Shield, Clock, Loader2 } from 'lucide-react';
+import { submitImport } from '../api/imports';
+import { friendlyErrorMessage } from '../api/client';
+import { FIELD_LIMITS, PATTERNS, MESSAGES } from '../lib/validation';
 
 export function Importaciones() {
   const [formData, setFormData] = useState({
@@ -13,42 +16,147 @@ export function Importaciones() {
     city: '',
     howDidYouKnow: ''
   });
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [confirmedId, setConfirmedId] = useState<number | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Formulario enviado:', formData);
+  const validate = () => {
+    const e: Record<string, string> = {};
+
+    if (!formData.productName.trim()) e.productName = MESSAGES.required;
+    else if (formData.productName.length > FIELD_LIMITS.productName)
+      e.productName = MESSAGES.maxLength(FIELD_LIMITS.productName);
+
+    if (!formData.referenceLink.trim()) e.referenceLink = MESSAGES.required;
+    else if (!PATTERNS.url.test(formData.referenceLink)) e.referenceLink = MESSAGES.url;
+    else if (formData.referenceLink.length > FIELD_LIMITS.url)
+      e.referenceLink = MESSAGES.maxLength(FIELD_LIMITS.url);
+
+    if (!formData.price.trim()) e.price = MESSAGES.required;
+    else if (Number.isNaN(Number(formData.price)) || Number(formData.price) <= 0)
+      e.price = 'Ingresa un precio válido mayor a 0';
+
+    const qty = Number(formData.quantity);
+    if (!formData.quantity || Number.isNaN(qty) || qty < 1)
+      e.quantity = 'La cantidad debe ser al menos 1';
+
+    if (formData.specifications.length > FIELD_LIMITS.description)
+      e.specifications = MESSAGES.maxLength(FIELD_LIMITS.description);
+
+    if (!formData.fullName.trim()) e.fullName = MESSAGES.required;
+    else if (formData.fullName.length > FIELD_LIMITS.fullName)
+      e.fullName = MESSAGES.maxLength(FIELD_LIMITS.fullName);
+
+    if (!formData.whatsapp.trim()) e.whatsapp = MESSAGES.required;
+    else if (!PATTERNS.phone.test(formData.whatsapp)) e.whatsapp = MESSAGES.phone;
+    else if (formData.whatsapp.length > FIELD_LIMITS.phone)
+      e.whatsapp = MESSAGES.maxLength(FIELD_LIMITS.phone);
+
+    if (!formData.city.trim()) e.city = MESSAGES.required;
+    else if (formData.city.length > FIELD_LIMITS.city)
+      e.city = MESSAGES.maxLength(FIELD_LIMITS.city);
+
+    setErrors(e);
+    return Object.keys(e).length === 0;
   };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitError(null);
+    if (!validate()) return;
+    setSubmitting(true);
+    try {
+      const result = await submitImport({
+        nombre: formData.fullName.trim(),
+        telefono: formData.whatsapp.trim(),
+        producto: formData.productName.trim(),
+        enlaceReferencia: formData.referenceLink.trim() || undefined,
+        descripcion: formData.specifications.trim() || undefined,
+        cantidad: Number(formData.quantity) || undefined,
+        presupuesto: formData.price ? Number(formData.price) : undefined,
+        ciudad: formData.city.trim() || undefined,
+        comoNosConocio: formData.howDidYouKnow || undefined,
+      });
+      setConfirmedId(result.id);
+      setFormData({
+        productName: '',
+        referenceLink: '',
+        price: '',
+        quantity: 1,
+        specifications: '',
+        fullName: '',
+        whatsapp: '',
+        city: '',
+        howDidYouKnow: '',
+      });
+    } catch (err) {
+      setSubmitError(friendlyErrorMessage(err));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const closeSuccessModal = () => setConfirmedId(null);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#F5F0FF] to-white py-12 px-4 sm:px-6">
+    <div className="min-h-screen bg-gradient-to-br from-[#F5F0FF] to-white dark:from-gray-950 dark:to-gray-900 py-8 sm:py-12 px-4 sm:px-6">
+      {confirmedId && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl">
+            <div className="text-center">
+              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <CheckCircle className="w-12 h-12 text-green-600" />
+              </div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-3">
+                ¡Solicitud recibida!
+              </h2>
+              <p className="text-sm text-gray-500 mb-2">
+                Número de referencia: <span className="font-bold text-gray-900">#{confirmedId}</span>
+              </p>
+              <p className="text-gray-600 mb-8 text-lg">
+                Te contactaremos por WhatsApp en menos de 24 horas con la cotización.
+              </p>
+              <button
+                onClick={closeSuccessModal}
+                className="w-full bg-[#9146FF] text-white px-6 py-4 rounded-xl font-bold hover:bg-[#772CE8] transition-all shadow-lg hover:shadow-xl"
+              >
+                Entendido
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#9146FF] rounded-full mb-6">
-            <CheckCircle className="w-4 h-4 text-white" />
-            <span className="text-sm font-semibold text-white">
+        <div className="text-center mb-8 sm:mb-12">
+          <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-[#9146FF] rounded-full mb-4 sm:mb-6 max-w-full">
+            <CheckCircle className="w-4 h-4 text-white flex-shrink-0" />
+            <span className="text-xs sm:text-sm font-semibold text-white">
               Importación directa desde cualquier parte del mundo
             </span>
           </div>
 
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-2 sm:mb-4">
             ¿No lo encuentras en Colombia?
           </h1>
-          <h2 className="text-4xl md:text-5xl font-bold text-[#9146FF] mb-6">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-[#9146FF] mb-4 sm:mb-6">
             Nosotros lo traemos.
           </h2>
-          <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+          <p className="text-gray-600 text-base sm:text-lg max-w-2xl mx-auto">
             Diligencia el formulario y en menos de 24 horas te enviamos la cotización por WhatsApp.
           </p>
         </div>
 
         {/* Steps */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-10 sm:mb-16">
           <div className="flex items-start gap-4 p-6 bg-white rounded-xl border-2 border-gray-200 hover:border-[#9146FF] transition-all">
             <div className="flex-shrink-0 w-12 h-12 bg-[#9146FF] rounded-full flex items-center justify-center">
               <span className="text-white font-bold text-xl">1</span>
@@ -87,10 +195,10 @@ export function Importaciones() {
         </div>
 
         {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
           {/* Left Column - Process Info */}
-          <div className="space-y-8">
-            <div className="bg-white rounded-2xl p-8 border-2 border-gray-200">
+          <div className="space-y-6 lg:space-y-8">
+            <div className="bg-white rounded-2xl p-5 sm:p-8 border-2 border-gray-200">
               <h3 className="text-2xl font-bold text-gray-900 mb-6">
                 ¿Cómo funciona el proceso?
               </h3>
@@ -159,7 +267,7 @@ export function Importaciones() {
             </div>
 
             {/* Why Import Section */}
-            <div className="bg-white rounded-2xl p-8 border-2 border-gray-200">
+            <div className="bg-white rounded-2xl p-5 sm:p-8 border-2 border-gray-200">
               <h3 className="text-2xl font-bold text-gray-900 mb-6">
                 ¿Por qué importar con JeroTech?
               </h3>
@@ -205,7 +313,7 @@ export function Importaciones() {
           </div>
 
           {/* Right Column - Form */}
-          <div className="bg-white rounded-2xl p-8 border-2 border-gray-200 h-fit sticky top-8">
+          <div className="bg-white rounded-2xl p-5 sm:p-8 border-2 border-gray-200 h-fit lg:sticky lg:top-8">
             <h3 className="text-2xl font-bold text-gray-900 mb-2">
               Solicitud de importación
             </h3>
@@ -231,10 +339,16 @@ export function Importaciones() {
                       name="productName"
                       value={formData.productName}
                       onChange={handleInputChange}
+                      maxLength={FIELD_LIMITS.productName}
                       placeholder="iPhone 16 Pro Max 256GB Negro"
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9146FF] focus:border-[#9146FF] transition-all"
+                      className={`w-full px-4 py-3 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9146FF] focus:border-[#9146FF] transition-all ${
+                        errors.productName ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                      }`}
                       required
                     />
+                    {errors.productName && (
+                      <p className="text-red-600 text-xs mt-1">{errors.productName}</p>
+                    )}
                   </div>
 
                   <div>
@@ -246,13 +360,20 @@ export function Importaciones() {
                       name="referenceLink"
                       value={formData.referenceLink}
                       onChange={handleInputChange}
+                      maxLength={FIELD_LIMITS.url}
                       placeholder="https://amazon.com/..."
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9146FF] focus:border-[#9146FF] transition-all"
+                      className={`w-full px-4 py-3 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9146FF] focus:border-[#9146FF] transition-all ${
+                        errors.referenceLink ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                      }`}
                       required
                     />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Pega el link de Amazon, eBay, BestBuy u otra tienda
-                    </p>
+                    {errors.referenceLink ? (
+                      <p className="text-red-600 text-xs mt-1">{errors.referenceLink}</p>
+                    ) : (
+                      <p className="text-xs text-gray-500 mt-1">
+                        Pega el link de Amazon, eBay, BestBuy u otra tienda
+                      </p>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -267,11 +388,18 @@ export function Importaciones() {
                           name="price"
                           value={formData.price}
                           onChange={handleInputChange}
+                          min="0"
+                          step="any"
                           placeholder="999"
-                          className="w-full pl-8 pr-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9146FF] focus:border-[#9146FF] transition-all"
+                          className={`w-full pl-8 pr-4 py-3 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9146FF] focus:border-[#9146FF] transition-all ${
+                            errors.price ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                          }`}
                           required
                         />
                       </div>
+                      {errors.price && (
+                        <p className="text-red-600 text-xs mt-1">{errors.price}</p>
+                      )}
                     </div>
 
                     <div>
@@ -284,9 +412,15 @@ export function Importaciones() {
                         value={formData.quantity}
                         onChange={handleInputChange}
                         min="1"
-                        className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9146FF] focus:border-[#9146FF] transition-all"
+                        max="999"
+                        className={`w-full px-4 py-3 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9146FF] focus:border-[#9146FF] transition-all ${
+                          errors.quantity ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                        }`}
                         required
                       />
+                      {errors.quantity && (
+                        <p className="text-red-600 text-xs mt-1">{errors.quantity}</p>
+                      )}
                     </div>
                   </div>
 
@@ -298,10 +432,16 @@ export function Importaciones() {
                       name="specifications"
                       value={formData.specifications}
                       onChange={handleInputChange}
+                      maxLength={FIELD_LIMITS.description}
                       placeholder="Color, versión, almacenamiento, accesorios incluidos, etc."
                       rows={3}
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9146FF] focus:border-[#9146FF] transition-all resize-none"
+                      className={`w-full px-4 py-3 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9146FF] focus:border-[#9146FF] transition-all resize-none ${
+                        errors.specifications ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                      }`}
                     />
+                    {errors.specifications && (
+                      <p className="text-red-600 text-xs mt-1">{errors.specifications}</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -323,10 +463,16 @@ export function Importaciones() {
                       name="fullName"
                       value={formData.fullName}
                       onChange={handleInputChange}
+                      maxLength={FIELD_LIMITS.fullName}
                       placeholder="Tu nombre"
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9146FF] focus:border-[#9146FF] transition-all"
+                      className={`w-full px-4 py-3 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9146FF] focus:border-[#9146FF] transition-all ${
+                        errors.fullName ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                      }`}
                       required
                     />
+                    {errors.fullName && (
+                      <p className="text-red-600 text-xs mt-1">{errors.fullName}</p>
+                    )}
                   </div>
 
                   <div>
@@ -338,10 +484,16 @@ export function Importaciones() {
                       name="whatsapp"
                       value={formData.whatsapp}
                       onChange={handleInputChange}
+                      maxLength={FIELD_LIMITS.phone}
                       placeholder="+57 300 000 0000"
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9146FF] focus:border-[#9146FF] transition-all"
+                      className={`w-full px-4 py-3 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9146FF] focus:border-[#9146FF] transition-all ${
+                        errors.whatsapp ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                      }`}
                       required
                     />
+                    {errors.whatsapp && (
+                      <p className="text-red-600 text-xs mt-1">{errors.whatsapp}</p>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -354,10 +506,16 @@ export function Importaciones() {
                         name="city"
                         value={formData.city}
                         onChange={handleInputChange}
+                        maxLength={FIELD_LIMITS.city}
                         placeholder="Ibagué, Bogotá..."
-                        className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9146FF] focus:border-[#9146FF] transition-all"
+                        className={`w-full px-4 py-3 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9146FF] focus:border-[#9146FF] transition-all ${
+                          errors.city ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                        }`}
                         required
                       />
+                      {errors.city && (
+                        <p className="text-red-600 text-xs mt-1">{errors.city}</p>
+                      )}
                     </div>
 
                     <div>
@@ -381,13 +539,29 @@ export function Importaciones() {
                 </div>
               </div>
 
+              {submitError && (
+                <div className="bg-red-50 border-2 border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+                  {submitError}
+                </div>
+              )}
+
               {/* Submit Button */}
               <button
                 type="submit"
-                className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-[#9146FF] text-white rounded-xl font-bold text-lg hover:bg-[#772CE8] transition-all shadow-lg hover:shadow-xl hover:scale-105"
+                disabled={submitting}
+                className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-[#9146FF] text-white rounded-xl font-bold text-lg hover:bg-[#772CE8] transition-all shadow-lg hover:shadow-xl hover:scale-105 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
-                <Package className="w-6 h-6" />
-                Enviar solicitud de importación
+                {submitting ? (
+                  <>
+                    <Loader2 className="w-6 h-6 animate-spin" />
+                    Enviando...
+                  </>
+                ) : (
+                  <>
+                    <Package className="w-6 h-6" />
+                    Enviar solicitud de importación
+                  </>
+                )}
               </button>
 
               <p className="text-xs text-center text-gray-500">

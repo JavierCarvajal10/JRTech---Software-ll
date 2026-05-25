@@ -1,158 +1,169 @@
-import { 
-  Smartphone, 
-  Laptop, 
-  Monitor, 
-  Mouse, 
-  Keyboard, 
+import { useMemo } from 'react';
+import { Link } from 'react-router';
+import {
+  Smartphone,
+  Laptop,
+  Monitor,
+  Mouse,
+  Keyboard,
   Cable,
   Cpu,
   HardDrive,
   Zap,
   Droplet,
-  Fan,
   Headphones,
   Mic,
   Speaker,
   Camera,
   Gamepad2,
-  Watch
+  Watch,
+  Folder,
+  Loader2,
 } from 'lucide-react';
+import { useCategories } from '../hooks/useCategories';
+import { useProducts } from '../hooks/useProducts';
+import { buildCategoryTree } from '../api/categories';
 
-interface SubCategory {
-  name: string;
-  count: number;
-  icon: React.ReactNode;
-}
+const PARENT_COLORS: Record<string, string> = {
+  Apple: '#10B981',
+  Computadores: '#3B82F6',
+  'Componentes PC': '#F97316',
+  'Audio & Streaming': '#10B981',
+  Accesorios: '#EAB308',
+};
 
-interface Category {
-  name: string;
-  color: string;
-  totalProducts: number;
-  subcategories: SubCategory[];
-}
+const SUBCATEGORY_ICONS: Record<string, React.ReactNode> = {
+  iPhone: <Smartphone className="w-5 h-5" />,
+  'Mac / MacBook': <Laptop className="w-5 h-5" />,
+  'Apple Watch': <Watch className="w-5 h-5" />,
+  AirPods: <Headphones className="w-5 h-5" />,
+  'iPad / Accesorios': <Smartphone className="w-5 h-5" />,
+  Laptops: <Laptop className="w-5 h-5" />,
+  Monitores: <Monitor className="w-5 h-5" />,
+  Mouse: <Mouse className="w-5 h-5" />,
+  Teclados: <Keyboard className="w-5 h-5" />,
+  Cables: <Cable className="w-5 h-5" />,
+  'GPU Gráficas': <Cpu className="w-5 h-5" />,
+  Procesadores: <Cpu className="w-5 h-5" />,
+  Boards: <Cpu className="w-5 h-5" />,
+  RAM: <HardDrive className="w-5 h-5" />,
+  Almacenamiento: <HardDrive className="w-5 h-5" />,
+  'Fuentes de poder': <Zap className="w-5 h-5" />,
+  'Refri. líquida y aire': <Droplet className="w-5 h-5" />,
+  Audífonos: <Headphones className="w-5 h-5" />,
+  Micrófonos: <Mic className="w-5 h-5" />,
+  Parlantes: <Speaker className="w-5 h-5" />,
+  Cámaras: <Camera className="w-5 h-5" />,
+  'Dispo. Streaming': <Gamepad2 className="w-5 h-5" />,
+  Alexas: <Speaker className="w-5 h-5" />,
+};
 
 export function Categories() {
-  const categories: Category[] = [
-    {
-      name: 'Apple',
-      color: '#10B981', // verde
-      totalProducts: 8,
-      subcategories: [
-        { name: 'iPhone', count: 0, icon: <Smartphone className="w-5 h-5" /> },
-        { name: 'Mac / MacBook', count: 0, icon: <Laptop className="w-5 h-5" /> },
-        { name: 'Apple Watch', count: 0, icon: <Watch className="w-5 h-5" /> },
-        { name: 'AirPods', count: 0, icon: <Headphones className="w-5 h-5" /> },
-        { name: 'iPad / Accesorios', count: 0, icon: <Smartphone className="w-5 h-5" /> },
-      ]
-    },
-    {
-      name: 'Computadores',
-      color: '#3B82F6', // azul
-      totalProducts: 10,
-      subcategories: [
-        { name: 'Laptops', count: 1, icon: <Laptop className="w-5 h-5" /> },
-        { name: 'Monitores', count: 2, icon: <Monitor className="w-5 h-5" /> },
-        { name: 'Mouse', count: 2, icon: <Mouse className="w-5 h-5" /> },
-        { name: 'Teclados', count: 3, icon: <Keyboard className="w-5 h-5" /> },
-        { name: 'Cables', count: 4, icon: <Cable className="w-5 h-5" /> },
-      ]
-    },
-    {
-      name: 'Componentes PC',
-      color: '#F97316', // naranja
-      totalProducts: 24,
-      subcategories: [
-        { name: 'GPU Gráficas', count: 5, icon: <Cpu className="w-5 h-5" /> },
-        { name: 'Procesadores', count: 1, icon: <Cpu className="w-5 h-5" /> },
-        { name: 'Boards', count: 6, icon: <Cpu className="w-5 h-5" /> },
-        { name: 'RAM', count: 3, icon: <HardDrive className="w-5 h-5" /> },
-        { name: 'Almacenamiento', count: 5, icon: <HardDrive className="w-5 h-5" /> },
-        { name: 'Fuentes de poder', count: 2, icon: <Zap className="w-5 h-5" /> },
-        { name: 'Refri. líquida y aire', count: 2, icon: <Droplet className="w-5 h-5" /> },
-      ]
-    },
-    {
-      name: 'Audio & Streaming',
-      color: '#10B981', // verde
-      totalProducts: 16,
-      subcategories: [
-        { name: 'Audífonos', count: 5, icon: <Headphones className="w-5 h-5" /> },
-        { name: 'Micrófonos', count: 3, icon: <Mic className="w-5 h-5" /> },
-        { name: 'Parlantes', count: 1, icon: <Speaker className="w-5 h-5" /> },
-        { name: 'Cámaras', count: 2, icon: <Camera className="w-5 h-5" /> },
-        { name: 'Dispo. Streaming', count: 3, icon: <Gamepad2 className="w-5 h-5" /> },
-        { name: 'Alexas', count: 5, icon: <Speaker className="w-5 h-5" /> },
-      ]
-    },
-    {
-      name: 'Accesorios',
-      color: '#EAB308', // amarillo
-      totalProducts: 9,
-      subcategories: [
-        { name: 'Mouse', count: 2, icon: <Mouse className="w-5 h-5" /> },
-        { name: 'Teclados', count: 3, icon: <Keyboard className="w-5 h-5" /> },
-        { name: 'Cables', count: 4, icon: <Cable className="w-5 h-5" /> },
-      ]
-    }
-  ];
+  const { data: categories = [], isLoading } = useCategories();
+  const { data: products = [] } = useProducts();
+
+  const tree = useMemo(() => buildCategoryTree(categories), [categories]);
+
+  const productsByCategoryId = useMemo(() => {
+    const map = new Map<number, number>();
+    products.forEach((p) => {
+      if (p.categoryId !== null) {
+        map.set(p.categoryId, (map.get(p.categoryId) ?? 0) + 1);
+      }
+    });
+    return map;
+  }, [products]);
+
+  const productsByParentName = useMemo(() => {
+    const map = new Map<string, number>();
+    products.forEach((p) => {
+      const parent = p.categoryParent ?? p.category;
+      if (parent && parent !== 'Sin categoría') {
+        map.set(parent, (map.get(parent) ?? 0) + 1);
+      }
+    });
+    return map;
+  }, [products]);
 
   return (
-    <section className="w-full bg-gradient-to-b from-white to-purple-50 py-16 px-6">
+    <section className="w-full bg-gradient-to-b from-white to-purple-50 dark:from-gray-950 dark:to-gray-900 py-10 sm:py-16 px-4 sm:px-6">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-10">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+        <div className="mb-6 sm:mb-10">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2">
             Categorías
           </h2>
         </div>
 
-        {/* Categories Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {categories.map((category, index) => (
-            <div 
-              key={index}
-              className="bg-white rounded-2xl p-6 shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-[#9146FF] group"
-            >
-              {/* Category Header */}
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div 
-                    className="w-3 h-3 rounded-full" 
-                    style={{ backgroundColor: category.color }}
-                  ></div>
-                  <h3 className="text-xl font-bold text-gray-900 group-hover:text-[#9146FF] transition-colors">
-                    {category.name}
-                  </h3>
-                </div>
-                <div className="text-sm font-semibold px-3 py-1 rounded-full bg-purple-50 text-[#9146FF]">
-                  {category.totalProducts} prods
-                </div>
-              </div>
-
-              {/* Subcategories List */}
-              <div className="space-y-3">
-                {category.subcategories.map((subcategory, subIndex) => (
-                  <div 
-                    key={subIndex}
-                    className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-purple-50 transition-colors cursor-pointer group/item"
-                  >
+        {isLoading ? (
+          <div className="py-20 flex flex-col items-center gap-3 text-gray-500">
+            <Loader2 className="w-10 h-10 animate-spin text-[#9146FF]" />
+            <span>Cargando categorías…</span>
+          </div>
+        ) : tree.length === 0 ? (
+          <div className="py-20 text-center text-gray-500">
+            Aún no hay categorías. Créalas desde el panel de administrador.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            {tree.map((node) => {
+              const color = PARENT_COLORS[node.parent.name] ?? '#9146FF';
+              const total = productsByParentName.get(node.parent.name) ?? 0;
+              return (
+                <div
+                  key={node.parent.id}
+                  className="bg-white rounded-2xl p-5 sm:p-6 shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-[#9146FF] group"
+                >
+                  <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
-                      <div className="text-gray-600 group-hover/item:text-[#9146FF] transition-colors">
-                        {subcategory.icon}
-                      </div>
-                      <span className="text-gray-700 font-medium group-hover/item:text-[#9146FF] transition-colors">
-                        {subcategory.name}
-                      </span>
+                      <div
+                        className="w-3 h-3 rounded-full"
+                        style={{ backgroundColor: color }}
+                      ></div>
+                      <Link
+                        to={`/catalogo?category=${encodeURIComponent(node.parent.name)}`}
+                        className="text-xl font-bold text-gray-900 group-hover:text-[#9146FF] transition-colors"
+                      >
+                        {node.parent.name}
+                      </Link>
                     </div>
-                    <span className="text-sm text-gray-500 font-medium">
-                      {subcategory.count}
-                    </span>
+                    <div className="text-sm font-semibold px-3 py-1 rounded-full bg-purple-50 text-[#9146FF]">
+                      {total} prods
+                    </div>
                   </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
+
+                  <div className="space-y-3">
+                    {node.subcategories.map((sub) => {
+                      const count = productsByCategoryId.get(sub.id) ?? 0;
+                      const icon =
+                        SUBCATEGORY_ICONS[sub.name] ?? (
+                          <Folder className="w-5 h-5" />
+                        );
+                      return (
+                        <Link
+                          key={sub.id}
+                          to={`/catalogo?category=${encodeURIComponent(node.parent.name)}&subcategory=${encodeURIComponent(sub.name)}`}
+                          className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-purple-50 transition-colors cursor-pointer group/item"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="text-gray-600 group-hover/item:text-[#9146FF] transition-colors">
+                              {icon}
+                            </div>
+                            <span className="text-gray-700 font-medium group-hover/item:text-[#9146FF] transition-colors">
+                              {sub.name}
+                            </span>
+                          </div>
+                          <span className="text-sm text-gray-500 font-medium">
+                            {count}
+                          </span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </section>
   );
