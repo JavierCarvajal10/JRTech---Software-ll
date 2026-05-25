@@ -10,6 +10,7 @@ import {
   authCookieOptions,
   clearAuthCookieOptions,
 } from "../utils/cookies.js";
+import { sendError } from "../utils/errors.js";
 
 const setAuthCookie = (res, token) => {
   res.cookie(AUTH_COOKIE_NAME, token, authCookieOptions());
@@ -25,7 +26,7 @@ export const register = async (req, res) => {
       data: result,
     });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    sendError(res, error);
   }
 };
 
@@ -38,7 +39,7 @@ export const login = async (req, res) => {
       data: result,
     });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    sendError(res, error);
   }
 };
 
@@ -57,7 +58,7 @@ export const forgotPassword = async (req, res) => {
       ...(result.devToken ? { devToken: result.devToken } : {}),
     });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    sendError(res, error);
   }
 };
 
@@ -67,7 +68,7 @@ export const resetPasswordHandler = async (req, res) => {
     await resetPassword(token, newPassword);
     res.status(200).json({ message: "Contraseña actualizada correctamente" });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    sendError(res, error);
   }
 };
 
@@ -85,7 +86,8 @@ export const me = async (req, res) => {
     }
     const user = await getUserFromToken(token);
     res.status(200).json({ data: user });
-  } catch (error) {
-    res.status(401).json({ message: error.message });
+  } catch {
+    // Token inválido/expirado o usuario inexistente: siempre "no autenticado".
+    res.status(401).json({ message: "No autenticado" });
   }
 };
