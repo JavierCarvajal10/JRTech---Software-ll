@@ -90,6 +90,9 @@ export const router = createBrowserRouter([
       { path: "importaciones", element: <AdminImports /> },
       { path: "reportes", element: <AdminReports /> },
       { path: "configuracion", element: <AdminSettings /> },
+      { path: "arma-tu-pc", element: <BuildPC /> },
+      { path: "carrito", element: <Cart /> },
     ],
   },
 ]);
+

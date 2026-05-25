@@ -3,6 +3,7 @@ import { Package, MessageCircle, CheckCircle, DollarSign, Shield, Clock, Loader2
 import { submitImport } from '../api/imports';
 import { friendlyErrorMessage } from '../api/client';
 import { FIELD_LIMITS, PATTERNS, MESSAGES } from '../lib/validation';
+import { Package, MessageCircle, CheckCircle, DollarSign, Shield, Clock } from 'lucide-react';
 
 export function Importaciones() {
   const [formData, setFormData] = useState({
@@ -140,6 +141,21 @@ export function Importaciones() {
           <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-[#9146FF] rounded-full mb-4 sm:mb-6 max-w-full">
             <CheckCircle className="w-4 h-4 text-white flex-shrink-0" />
             <span className="text-xs sm:text-sm font-semibold text-white">
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log('Formulario enviado:', formData);
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-[#F5F0FF] to-white py-12 px-4 sm:px-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#9146FF] rounded-full mb-6">
+            <CheckCircle className="w-4 h-4 text-white" />
+            <span className="text-sm font-semibold text-white">
               Importación directa desde cualquier parte del mundo
             </span>
           </div>
@@ -151,12 +167,20 @@ export function Importaciones() {
             Nosotros lo traemos.
           </h2>
           <p className="text-gray-600 text-base sm:text-lg max-w-2xl mx-auto">
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+            ¿No lo encuentras en Colombia?
+          </h1>
+          <h2 className="text-4xl md:text-5xl font-bold text-[#9146FF] mb-6">
+            Nosotros lo traemos.
+          </h2>
+          <p className="text-gray-600 text-lg max-w-2xl mx-auto">
             Diligencia el formulario y en menos de 24 horas te enviamos la cotización por WhatsApp.
           </p>
         </div>
 
         {/* Steps */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-10 sm:mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
           <div className="flex items-start gap-4 p-6 bg-white rounded-xl border-2 border-gray-200 hover:border-[#9146FF] transition-all">
             <div className="flex-shrink-0 w-12 h-12 bg-[#9146FF] rounded-full flex items-center justify-center">
               <span className="text-white font-bold text-xl">1</span>
@@ -199,6 +223,10 @@ export function Importaciones() {
           {/* Left Column - Process Info */}
           <div className="space-y-6 lg:space-y-8">
             <div className="bg-white rounded-2xl p-5 sm:p-8 border-2 border-gray-200">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Left Column - Process Info */}
+          <div className="space-y-8">
+            <div className="bg-white rounded-2xl p-8 border-2 border-gray-200">
               <h3 className="text-2xl font-bold text-gray-900 mb-6">
                 ¿Cómo funciona el proceso?
               </h3>
@@ -268,6 +296,7 @@ export function Importaciones() {
 
             {/* Why Import Section */}
             <div className="bg-white rounded-2xl p-5 sm:p-8 border-2 border-gray-200">
+            <div className="bg-white rounded-2xl p-8 border-2 border-gray-200">
               <h3 className="text-2xl font-bold text-gray-900 mb-6">
                 ¿Por qué importar con JeroTech?
               </h3>
@@ -314,6 +343,7 @@ export function Importaciones() {
 
           {/* Right Column - Form */}
           <div className="bg-white rounded-2xl p-5 sm:p-8 border-2 border-gray-200 h-fit lg:sticky lg:top-8">
+          <div className="bg-white rounded-2xl p-8 border-2 border-gray-200 h-fit sticky top-8">
             <h3 className="text-2xl font-bold text-gray-900 mb-2">
               Solicitud de importación
             </h3>
@@ -349,6 +379,10 @@ export function Importaciones() {
                     {errors.productName && (
                       <p className="text-red-600 text-xs mt-1">{errors.productName}</p>
                     )}
+                      placeholder="iPhone 16 Pro Max 256GB Negro"
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9146FF] focus:border-[#9146FF] transition-all"
+                      required
+                    />
                   </div>
 
                   <div>
@@ -374,6 +408,13 @@ export function Importaciones() {
                         Pega el link de Amazon, eBay, BestBuy u otra tienda
                       </p>
                     )}
+                      placeholder="https://amazon.com/..."
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9146FF] focus:border-[#9146FF] transition-all"
+                      required
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Pega el link de Amazon, eBay, BestBuy u otra tienda
+                    </p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -400,6 +441,11 @@ export function Importaciones() {
                       {errors.price && (
                         <p className="text-red-600 text-xs mt-1">{errors.price}</p>
                       )}
+                          placeholder="999"
+                          className="w-full pl-8 pr-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9146FF] focus:border-[#9146FF] transition-all"
+                          required
+                        />
+                      </div>
                     </div>
 
                     <div>
@@ -421,6 +467,9 @@ export function Importaciones() {
                       {errors.quantity && (
                         <p className="text-red-600 text-xs mt-1">{errors.quantity}</p>
                       )}
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9146FF] focus:border-[#9146FF] transition-all"
+                        required
+                      />
                     </div>
                   </div>
 
@@ -442,6 +491,10 @@ export function Importaciones() {
                     {errors.specifications && (
                       <p className="text-red-600 text-xs mt-1">{errors.specifications}</p>
                     )}
+                      placeholder="Color, versión, almacenamiento, accesorios incluidos, etc."
+                      rows={3}
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9146FF] focus:border-[#9146FF] transition-all resize-none"
+                    />
                   </div>
                 </div>
               </div>
@@ -473,6 +526,10 @@ export function Importaciones() {
                     {errors.fullName && (
                       <p className="text-red-600 text-xs mt-1">{errors.fullName}</p>
                     )}
+                      placeholder="Tu nombre"
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9146FF] focus:border-[#9146FF] transition-all"
+                      required
+                    />
                   </div>
 
                   <div>
@@ -494,6 +551,10 @@ export function Importaciones() {
                     {errors.whatsapp && (
                       <p className="text-red-600 text-xs mt-1">{errors.whatsapp}</p>
                     )}
+                      placeholder="+57 300 000 0000"
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9146FF] focus:border-[#9146FF] transition-all"
+                      required
+                    />
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -516,6 +577,10 @@ export function Importaciones() {
                       {errors.city && (
                         <p className="text-red-600 text-xs mt-1">{errors.city}</p>
                       )}
+                        placeholder="Ibagué, Bogotá..."
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9146FF] focus:border-[#9146FF] transition-all"
+                        required
+                      />
                     </div>
 
                     <div>
@@ -562,6 +627,13 @@ export function Importaciones() {
                     Enviar solicitud de importación
                   </>
                 )}
+              {/* Submit Button */}
+              <button
+                type="submit"
+                className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-[#9146FF] text-white rounded-xl font-bold text-lg hover:bg-[#772CE8] transition-all shadow-lg hover:shadow-xl hover:scale-105"
+              >
+                <Package className="w-6 h-6" />
+                Enviar solicitud de importación
               </button>
 
               <p className="text-xs text-center text-gray-500">
