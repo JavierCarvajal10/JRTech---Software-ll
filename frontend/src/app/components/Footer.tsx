@@ -1,4 +1,4 @@
-import { MapPin, MessageCircle, Instagram, Clock, Facebook, Youtube } from "lucide-react";
+import { MapPin, MessageCircle, Instagram, Clock } from "lucide-react";
 import { Link } from "react-router";
 
 export function Footer() {
@@ -18,18 +18,22 @@ export function Footer() {
             </p>
             <div className="flex gap-3">
               <a
-                href="#"
+                href="https://api.whatsapp.com/send?phone=573153554193"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-10 h-10 bg-[#1a1a2e] rounded-lg flex items-center justify-center hover:bg-purple-600 transition-colors"
-                aria-label="Facebook"
+                aria-label="WhatsApp"
               >
-                <Facebook className="w-5 h-5" />
+                <MessageCircle className="w-5 h-5" />
               </a>
               <a
-                href="#"
+                href="https://www.instagram.com/Jerotech_Col"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-10 h-10 bg-[#1a1a2e] rounded-lg flex items-center justify-center hover:bg-purple-600 transition-colors"
-                aria-label="YouTube"
+                aria-label="Instagram"
               >
-                <Youtube className="w-5 h-5" />
+                <Instagram className="w-5 h-5" />
               </a>
             </div>
           </div>
@@ -81,34 +85,29 @@ export function Footer() {
             <h3 className="font-semibold mb-4 text-white">JRTECH</h3>
             <ul className="space-y-2.5 text-gray-400 text-sm">
               <li>
-                <a href="#" className="hover:text-purple-500 transition-colors inline-block">
-                  Sobre nosotros
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-purple-500 transition-colors inline-block">
+                <Link to="/importaciones" className="hover:text-purple-500 transition-colors inline-block">
                   Importaciones
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-purple-500 transition-colors inline-block">
-                  Cómo comprar
-                </a>
+                <Link to="/arma-tu-pc" className="hover:text-purple-500 transition-colors inline-block">
+                  Arma tu PC
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-purple-500 transition-colors inline-block">
-                  Seguimiento pedido
-                </a>
+                <Link to="/mis-pedidos" className="hover:text-purple-500 transition-colors inline-block">
+                  Mis pedidos
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-purple-500 transition-colors inline-block">
-                  Garantías
-                </a>
+                <Link to="/favoritos" className="hover:text-purple-500 transition-colors inline-block">
+                  Favoritos
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-purple-500 transition-colors inline-block">
-                  Preguntas frecuentes
-                </a>
+                <Link to="/perfil" className="hover:text-purple-500 transition-colors inline-block">
+                  Mi perfil
+                </Link>
               </li>
             </ul>
           </div>
@@ -132,8 +131,13 @@ export function Footer() {
                 </div>
                 <div className="text-sm min-w-0">
                   <div className="text-gray-500 text-xs uppercase tracking-wide">WHATSAPP</div>
-                  <a href="tel:+573000000000" className="text-gray-300 hover:text-purple-500 transition-colors inline-block mt-0.5">
-                    +57 300 000 0000
+                  <a
+                    href="https://api.whatsapp.com/send?phone=573153554193"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-300 hover:text-purple-500 transition-colors inline-block mt-0.5"
+                  >
+                    +57 315 355 4193
                   </a>
                 </div>
               </li>
@@ -143,8 +147,13 @@ export function Footer() {
                 </div>
                 <div className="text-sm min-w-0">
                   <div className="text-gray-500 text-xs uppercase tracking-wide">INSTAGRAM</div>
-                  <a href="https://instagram.com/jrtech.co" className="text-gray-300 hover:text-purple-500 transition-colors inline-block mt-0.5 break-all">
-                    @jrtech.co
+                  <a
+                    href="https://www.instagram.com/Jerotech_Col"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-300 hover:text-purple-500 transition-colors inline-block mt-0.5 break-all"
+                  >
+                    @Jerotech_Col
                   </a>
                 </div>
               </li>

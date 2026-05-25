@@ -2,12 +2,16 @@ import { Search, ShoppingCart, User, Menu, X, ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
+import { UserDropdown } from './UserDropdown';
+import { FIELD_LIMITS } from '../lib/validation';
 
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
   const { getTotalItems } = useCart();
+  const { isAuthenticated } = useAuth();
 
   return (
     <nav className="w-full bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
@@ -27,6 +31,7 @@ export function Navbar() {
                 type="text"
                 placeholder="Buscar portátiles, teléfonos, componentes..."
                 value={searchQuery}
+                maxLength={FIELD_LIMITS.searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
                   navigate(`/catalogo?search=${encodeURIComponent(e.target.value)}`);
@@ -52,11 +57,15 @@ export function Navbar() {
               <span className="hidden lg:block font-semibold">Carrito</span>
             </Link>
 
-            {/* Account Button */}
-            <Link to="/login" className="hidden md:flex items-center gap-2 px-4 py-2.5 text-gray-700 hover:text-[#9146FF] hover:bg-gray-50 rounded-lg transition-all">
-              <User className="w-5 h-5" />
-              <span className="font-semibold">Cuenta</span>
-            </Link>
+            {/* Account Button / User Dropdown */}
+            {isAuthenticated ? (
+              <UserDropdown />
+            ) : (
+              <Link to="/login" className="hidden md:flex items-center gap-2 px-4 py-2.5 text-gray-700 hover:text-[#9146FF] hover:bg-gray-50 rounded-lg transition-all">
+                <User className="w-5 h-5" />
+                <span className="font-semibold">Cuenta</span>
+              </Link>
+            )}
 
             {/* Mobile Menu Toggle */}
             <button
@@ -110,6 +119,7 @@ export function Navbar() {
                   type="text"
                   placeholder="Buscar productos..."
                   value={searchQuery}
+                  maxLength={FIELD_LIMITS.searchQuery}
                   onChange={(e) => {
                     setSearchQuery(e.target.value);
                     navigate(`/catalogo?search=${encodeURIComponent(e.target.value)}`);
@@ -146,10 +156,22 @@ export function Navbar() {
               <Link to="/arma-tu-pc" className="px-4 py-3 bg-gradient-to-r from-[#9146FF] to-[#772CE8] text-white hover:from-[#772CE8] hover:to-[#9146FF] rounded-lg transition-all font-bold" onClick={() => setIsMenuOpen(false)}>
                 Arma tú PC
               </Link>
-              <Link to="/login" className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:text-[#9146FF] hover:bg-gray-50 rounded-lg transition-all font-medium border-t border-gray-200 mt-2 pt-4" onClick={() => setIsMenuOpen(false)}>
-                <User className="w-5 h-5" />
-                <span>Mi Cuenta</span>
-              </Link>
+
+
+              {isAuthenticated ? (
+                <div className="border-t border-gray-200 mt-2 pt-4">
+                  <UserDropdown />
+                </div>
+              ) : (
+                <Link
+                  to="/login"
+                  className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:text-[#9146FF] hover:bg-gray-50 rounded-lg transition-all font-medium border-t border-gray-200 mt-2 pt-4"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <User className="w-5 h-5" />
+                  <span>Mi Cuenta</span>
+                </Link>
+              )}
             </div>
           </div>
         </div>
