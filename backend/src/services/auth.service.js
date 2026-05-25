@@ -8,6 +8,7 @@ import {
 } from "../repositories/auth.repository.js";
 import { hashPassword, comparePassword } from "../utils/hash.js";
 import { sendPasswordResetEmail } from "./email.service.js";
+import { AppError } from "../utils/errors.js";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
 
@@ -34,16 +35,16 @@ export const registerUser = async (data) => {
   const { email, password, primerNombre, primerApellido } = data;
 
   if (!email || !password || !primerNombre || !primerApellido) {
-    throw new Error("Email, contraseña, primer nombre y primer apellido son obligatorios");
+    throw new AppError("Email, contraseña, primer nombre y primer apellido son obligatorios");
   }
 
   if (password.length < 6) {
-    throw new Error("La contraseña debe tener al menos 6 caracteres");
+    throw new AppError("La contraseña debe tener al menos 6 caracteres");
   }
 
   const existingUser = await findUserByEmail(email.toLowerCase());
   if (existingUser) {
-    throw new Error("Ya existe un usuario con ese email");
+    throw new AppError("Ya existe un usuario con ese email");
   }
 
   const hashed = await hashPassword(password);
@@ -63,17 +64,17 @@ export const loginUser = async (data) => {
   const { email, password } = data;
 
   if (!email || !password) {
-    throw new Error("Email y contraseña son obligatorios");
+    throw new AppError("Email y contraseña son obligatorios");
   }
 
   const user = await findUserByEmail(email.toLowerCase());
   if (!user) {
-    throw new Error("Credenciales inválidas");
+    throw new AppError("Credenciales inválidas", 401);
   }
 
   const isValid = await comparePassword(password, user.contraseñaHash);
   if (!isValid) {
-    throw new Error("Credenciales inválidas");
+    throw new AppError("Credenciales inválidas", 401);
   }
 
   const token = signToken(user);
@@ -83,7 +84,7 @@ export const loginUser = async (data) => {
 export const getUserFromToken = async (token) => {
   const payload = verifyToken(token);
   const user = await findUserById(payload.id);
-  if (!user) throw new Error("Usuario no encontrado");
+  if (!user) throw new AppError("Usuario no encontrado", 401);
   return publicUser(user);
 };
 
@@ -101,7 +102,7 @@ const hashResetToken = (rawToken) =>
 
 export const requestPasswordReset = async (email) => {
   if (!email || typeof email !== "string") {
-    throw new Error("Email es obligatorio");
+    throw new AppError("Email es obligatorio");
   }
 
   const normalized = email.trim().toLowerCase();
@@ -130,22 +131,22 @@ export const requestPasswordReset = async (email) => {
     if (process.env.NODE_ENV !== "production") {
       return { ok: true, devToken: rawToken };
     }
-    throw new Error("No se pudo enviar el correo de recuperación. Intenta más tarde.");
+    throw new AppError("No se pudo enviar el correo de recuperación. Intenta más tarde.", 502);
   }
 
   return { ok: true };
 };
 
 export const resetPassword = async (rawToken, newPassword) => {
-  if (!rawToken) throw new Error("Token de recuperación inválido");
+  if (!rawToken) throw new AppError("Token de recuperación inválido");
   if (!newPassword || newPassword.length < 6) {
-    throw new Error("La nueva contraseña debe tener al menos 6 caracteres");
+    throw new AppError("La nueva contraseña debe tener al menos 6 caracteres");
   }
 
   const tokenHash = hashResetToken(rawToken);
   const user = await findUserByResetTokenHash(tokenHash);
   if (!user) {
-    throw new Error("El enlace de recuperación es inválido o ha expirado");
+    throw new AppError("El enlace de recuperación es inválido o ha expirado");
   }
 
   const newHash = await hashPassword(newPassword);

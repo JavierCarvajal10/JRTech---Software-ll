@@ -278,9 +278,16 @@ export function ProductCatalog() {
                     <div key={node.parent.id}>
                       <button
                         onClick={() => {
-                          setSelectedCategory(node.parent.name);
-                          setSelectedSubcategory(null);
-                          setSearchParams({ category: node.parent.name });
+                          if (isParentSelected) {
+                            // Segundo clic sobre la categoría abierta: la cierra.
+                            setSelectedCategory('Todos');
+                            setSelectedSubcategory(null);
+                            setSearchParams({});
+                          } else {
+                            setSelectedCategory(node.parent.name);
+                            setSelectedSubcategory(null);
+                            setSearchParams({ category: node.parent.name });
+                          }
                         }}
                         className={`w-full text-left px-4 py-2.5 rounded-lg transition-all font-medium flex items-center justify-between ${
                           isParentSelected && !selectedSubcategory
