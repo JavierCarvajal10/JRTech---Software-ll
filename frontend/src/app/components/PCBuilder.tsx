@@ -53,37 +53,37 @@ export function PCBuilder() {
   ];
 
   return (
-    <section className="w-full bg-gradient-to-br from-[#0E0E10] via-[#1a1a1f] to-[#0E0E10] py-20 px-6 relative overflow-hidden">
+    <section className="w-full bg-gradient-to-br from-[#0E0E10] via-[#1a1a1f] to-[#0E0E10] py-12 sm:py-16 lg:py-20 px-4 sm:px-6 relative overflow-hidden">
       {/* Decorative gradient orbs */}
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#9146FF] opacity-10 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-[#772CE8] opacity-10 rounded-full blur-3xl"></div>
-      
+      <div className="absolute top-0 left-1/4 w-72 h-72 sm:w-96 sm:h-96 bg-[#9146FF] opacity-10 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-0 right-1/4 w-72 h-72 sm:w-96 sm:h-96 bg-[#772CE8] opacity-10 rounded-full blur-3xl"></div>
+
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Top Section - Title and Steps */}
-        <div className="grid lg:grid-cols-2 gap-12 mb-16">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 mb-10 sm:mb-16">
           {/* Left - Title and Description */}
           <div>
             {/* Title */}
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight">
-              ¿Tienes dudas a la hora<br />
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4 sm:mb-6 leading-tight">
+              ¿Tienes dudas a la hora<br className="hidden sm:inline" />{' '}
               de <span className="text-[#9146FF]">armar tu PC?</span>
             </h2>
 
             {/* Description */}
-            <p className="text-gray-300 text-lg leading-relaxed mb-8">
+            <p className="text-gray-300 text-base sm:text-lg leading-relaxed mb-6 sm:mb-8">
               Selecciona tus componentes uno a uno y nuestro sistema verifica en tiempo real si son compatibles entre sí. Sin errores, sin plata perdida.
             </p>
 
             {/* CTA Button */}
             <div className="flex justify-center lg:justify-start">
-              <Link to="/arma-tu-pc" className="bg-[#9146FF] hover:bg-[#772CE8] text-white font-bold px-10 py-4 rounded-full transition-all duration-200 shadow-lg shadow-[#9146FF]/30 hover:shadow-xl hover:shadow-[#9146FF]/40 hover:scale-105">
+              <Link to="/arma-tu-pc" className="bg-[#9146FF] hover:bg-[#772CE8] text-white font-bold px-8 sm:px-10 py-3.5 sm:py-4 rounded-full transition-all duration-200 shadow-lg shadow-[#9146FF]/30 hover:shadow-xl hover:shadow-[#9146FF]/40 hover:scale-105 text-sm sm:text-base">
                 Empezar a armar mi PC
               </Link>
             </div>
           </div>
 
           {/* Right - Steps */}
-          <div className="space-y-6">
+          <div className="space-y-5 sm:space-y-6">
             {steps.map((step) => (
               <div key={step.number} className="flex gap-4">
                 {/* Number Badge */}
