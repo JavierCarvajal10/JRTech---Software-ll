@@ -4,9 +4,10 @@
 import "dotenv/config";
 import { sendPasswordResetEmail } from "../src/services/email.service.js";
 
-const to = process.argv[2] || process.env.SMTP_USER;
+const from = process.env.EMAIL_FROM || process.env.SMTP_FROM;
+const to = process.argv[2] || from;
 
-console.log("SMTP_USER:", process.env.SMTP_USER || "(undefined)");
+console.log("Remitente (from):", from || "(undefined)");
 console.log("Enviando correo de prueba a:", to);
 
 try {

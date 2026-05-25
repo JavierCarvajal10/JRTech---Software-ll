@@ -1,25 +1,60 @@
-import nodemailer from "nodemailer";
+// Envío de correos vía la API HTTP de Brevo (https://www.brevo.com).
+// Usamos HTTP (puerto 443) en lugar de SMTP porque Render Free BLOQUEA los
+// puertos SMTP salientes (25/465/587). HTTPS no está bloqueado, así que esto
+// funciona tanto en local como en producción.
 
-const SMTP_USER = process.env.SMTP_USER;
-const SMTP_PASS = process.env.SMTP_PASS;
-const SMTP_FROM = process.env.SMTP_FROM || SMTP_USER;
+const BREVO_API_KEY = process.env.BREVO_API_KEY;
+// Remitente: debe ser un correo verificado en Brevo (Senders & IP).
+// Se normaliza a minúsculas porque Brevo compara el remitente de forma exacta
+// y solo reconoce el que verificaste (que queda en minúsculas).
+const EMAIL_FROM = (process.env.EMAIL_FROM || process.env.SMTP_FROM || process.env.SMTP_USER || "").toLowerCase();
+const EMAIL_FROM_NAME = process.env.EMAIL_FROM_NAME || "JRTech";
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 
-let transporter = null;
+const BREVO_ENDPOINT = "https://api.brevo.com/v3/smtp/email";
 
-const getTransporter = () => {
-  if (!SMTP_USER || !SMTP_PASS) {
-    throw new Error(
-      "SMTP_USER y SMTP_PASS deben estar configurados en el .env para enviar correos"
-    );
+/**
+ * Envía un correo transaccional por la API de Brevo.
+ * Lanza un Error (con detalle para los logs) si algo falla.
+ */
+const sendEmail = async ({ to, subject, html, text }) => {
+  if (!BREVO_API_KEY) {
+    throw new Error("BREVO_API_KEY no está configurada en las variables de entorno");
   }
-  if (!transporter) {
-    transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: { user: SMTP_USER, pass: SMTP_PASS },
+  if (!EMAIL_FROM) {
+    throw new Error("EMAIL_FROM (o SMTP_FROM) no está configurado para el remitente");
+  }
+
+  // Timeout defensivo: si la API no responde en 15s, abortamos (no colgamos).
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+
+  let response;
+  try {
+    response = await fetch(BREVO_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "api-key": BREVO_API_KEY,
+        "Content-Type": "application/json",
+        accept: "application/json",
+      },
+      body: JSON.stringify({
+        sender: { name: EMAIL_FROM_NAME, email: EMAIL_FROM },
+        to: [{ email: to }],
+        subject,
+        htmlContent: html,
+        textContent: text,
+      }),
+      signal: controller.signal,
     });
+  } finally {
+    clearTimeout(timeout);
   }
-  return transporter;
+
+  if (!response.ok) {
+    const detail = await response.text().catch(() => "");
+    throw new Error(`Brevo respondió ${response.status}: ${detail}`);
+  }
 };
 
 export const sendPasswordResetEmail = async ({ to, name, token }) => {
@@ -77,11 +112,10 @@ ${resetUrl}
 
 Si tú no solicitaste este cambio, puedes ignorar este correo.`;
 
-  await getTransporter().sendMail({
-    from: `"JRTech" <${SMTP_FROM}>`,
+  await sendEmail({
     to,
     subject: "Restablece tu contraseña en JRTech",
-    text,
     html,
+    text,
   });
 };
