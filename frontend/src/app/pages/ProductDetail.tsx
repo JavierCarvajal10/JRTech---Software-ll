@@ -3,7 +3,6 @@ import { useParams, Link, useNavigate } from 'react-router';
 import {
   ChevronRight,
   ChevronLeft,
-  Star,
   Minus,
   Plus,
   ShoppingCart,
@@ -14,36 +13,56 @@ import {
   CreditCard,
   Shield,
   Eye,
-  RotateCcw
+  RotateCcw,
+  Loader2,
 } from 'lucide-react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
-import { getProductById } from '../data/products';
+import { useProduct } from '../hooks/useProducts';
+import { useToggleFavorite } from '../hooks/useFavorites';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../context/ToastContext';
+import { useAuth } from '../context/AuthContext';
 
 export function ProductDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { addToCart } = useCart();
-  const { showToast } = useToast();
+  const { showToast, showSuccess, showError } = useToast();
+  const { isAuthenticated } = useAuth();
+  const { isFavorite, toggle, isPending: favoritePending } = useToggleFavorite();
 
-  // Parse and validate ID
   const productId = id ? parseInt(id, 10) : NaN;
-  const product = !isNaN(productId) ? getProductById(productId) : undefined;
+  const { data: product, isLoading, isError, error } = useProduct(
+    !isNaN(productId) ? productId : undefined
+  );
 
-  // State
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
-  const [selectedColor, setSelectedColor] = useState(0);
-  const [activeTab, setActiveTab] = useState<'description' | 'specifications'>('description');
+  const [activeTab, setActiveTab] = useState<'description' | 'specifications'>(
+    'description'
+  );
 
-  // Product not found
-  if (!product) {
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3 text-gray-500">
+          <Loader2 className="w-10 h-10 animate-spin text-[#9146FF]" />
+          <span>Cargando producto…</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (isError || !product) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Producto no encontrado</h2>
-          <p className="text-gray-600 mb-4">El producto con ID "{id}" no existe en nuestro catálogo.</p>
+          <p className="text-gray-600 mb-4">
+            {error instanceof Error
+              ? error.message
+              : `El producto con ID "${id}" no existe en nuestro catálogo.`}
+          </p>
           <Link to="/catalogo" className="text-[#9146FF] hover:text-[#772CE8] font-semibold">
             Volver al catálogo
           </Link>
@@ -52,55 +71,17 @@ export function ProductDetail() {
     );
   }
 
-  // Ensure product has at least one image
-  const productImages = product.images && product.images.length > 0
-    ? product.images
-    : ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80'];
+  const displayImages = product.images;
+  const validImageIndex =
+    selectedImage >= 0 && selectedImage < displayImages.length ? selectedImage : 0;
 
-  // Get current display images - simplified logic
-  const getDisplayImages = (): string[] => {
-    // If no colors, use product images
-    if (!product.colors || product.colors.length === 0) {
-      return productImages;
-    }
-
-    // Validate selected color index
-    const validColorIndex = selectedColor >= 0 && selectedColor < product.colors.length
-      ? selectedColor
-      : 0;
-
-    // Get color image
-    const colorObj = product.colors[validColorIndex];
-    if (colorObj && colorObj.image) {
-      // Return color image first, then product images
-      return [colorObj.image, ...productImages];
-    }
-
-    // Fallback to product images
-    return productImages;
-  };
-
-  const displayImages = getDisplayImages();
-
-  // Ensure selectedImage is valid
-  const validImageIndex = selectedImage >= 0 && selectedImage < displayImages.length
-    ? selectedImage
-    : 0;
-
-  const formatPrice = (price: number) => {
-    return `$${price.toLocaleString('es-CO')}`;
-  };
+  const formatPrice = (price: number) => `$${price.toLocaleString('es-CO')}`;
 
   const handleQuantityChange = (delta: number) => {
     const newQuantity = quantity + delta;
     if (newQuantity >= 1 && newQuantity <= product.stock) {
       setQuantity(newQuantity);
     }
-  };
-
-  const handleColorChange = (colorIndex: number) => {
-    setSelectedColor(colorIndex);
-    setSelectedImage(0); // Reset to first image when color changes
   };
 
   const handlePreviousImage = () => {
@@ -111,42 +92,42 @@ export function ProductDetail() {
     setSelectedImage((prev) => (prev < displayImages.length - 1 ? prev + 1 : 0));
   };
 
+  const addQuantityToCart = () => {
+    for (let i = 0; i < quantity; i++) {
+      addToCart({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        image: displayImages[0],
+      });
+    }
+    showToast(product.name);
+  };
+
   return (
-    <div className="min-h-screen bg-white py-8 px-4 sm:px-6">
+    <div className="min-h-screen bg-white py-6 sm:py-8 px-4 sm:px-6">
       <div className="max-w-7xl mx-auto">
-        {/* Breadcrumb */}
-        <nav className="flex items-center gap-2 text-sm mb-8">
+        <nav className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs sm:text-sm mb-6 sm:mb-8">
           <Link to="/" className="text-gray-600 hover:text-[#9146FF] transition-colors">
             Inicio
           </Link>
-          <ChevronRight className="w-4 h-4 text-gray-400" />
+          <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
           <Link to="/catalogo" className="text-gray-600 hover:text-[#9146FF] transition-colors">
             Catálogo
           </Link>
-          <ChevronRight className="w-4 h-4 text-gray-400" />
-          <span className="text-gray-900 font-medium">{product.name}</span>
+          <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
+          <span className="text-gray-900 font-medium truncate max-w-[200px] sm:max-w-none">{product.name}</span>
         </nav>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-          {/* Left Column - Images */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12">
           <div className="space-y-4">
-            {/* Main Image */}
             <div className="relative aspect-square bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl overflow-hidden border-2 border-gray-200 group">
               <ImageWithFallback
                 src={displayImages[validImageIndex]}
                 alt={product.name}
                 className="w-full h-full object-cover"
               />
-              {product.badge && (
-                <div
-                  className="absolute top-4 left-4 px-4 py-2 rounded-full text-sm font-bold text-white shadow-lg"
-                  style={{ backgroundColor: product.badgeColor }}
-                >
-                  {product.badge}
-                </div>
-              )}
 
-              {/* Navigation Arrows - Only show if more than 1 image */}
               {displayImages.length > 1 && (
                 <>
                   <button
@@ -165,7 +146,6 @@ export function ProductDetail() {
               )}
             </div>
 
-            {/* Thumbnail Images - Only show if more than 1 image */}
             {displayImages.length > 1 && (
               <div className="grid grid-cols-4 gap-3">
                 {displayImages.slice(0, 4).map((image, index) => (
@@ -189,101 +169,38 @@ export function ProductDetail() {
             )}
           </div>
 
-          {/* Right Column - Product Info */}
-          <div className="space-y-6">
-            {/* Title and Stock */}
+          <div className="space-y-5 sm:space-y-6">
             <div>
-              <div className="text-sm font-semibold text-[#9146FF] mb-2">
+              <div className="text-xs sm:text-sm font-semibold text-[#9146FF] mb-2">
                 {product.category}
               </div>
-              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-3">
                 {product.name}
               </h1>
               <div className="flex items-center gap-3">
-                <span className="text-sm text-gray-600">SKU: {product.sku}</span>
-                {product.stock > 0 && (
+                <span className="text-sm text-gray-600">ID: {product.id}</span>
+                {product.stock > 0 ? (
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-green-500"></div>
                     <span className="text-sm text-green-600 font-semibold">
                       Hay existencias
                     </span>
                   </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                    <span className="text-sm text-red-600 font-semibold">Agotado</span>
+                  </div>
                 )}
               </div>
             </div>
 
-            {/* Rating */}
-            <div className="flex items-center gap-3">
-              <div className="flex">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    className={`w-5 h-5 ${
-                      i < Math.floor(product.rating)
-                        ? 'text-yellow-400 fill-yellow-400'
-                        : 'text-gray-300'
-                    }`}
-                  />
-                ))}
-              </div>
-              <span className="text-gray-600">
-                {product.rating} ({product.reviews} reseñas)
-              </span>
-            </div>
-
-            {/* Price */}
-            <div className="py-6 border-y-2 border-gray-200">
-              <div className="text-4xl font-bold text-gray-900 mb-2">
+            <div className="py-4 sm:py-6 border-y-2 border-gray-200">
+              <div className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
                 {formatPrice(product.price)}
               </div>
-              {product.originalPrice && (
-                <div className="flex items-center gap-3">
-                  <span className="text-xl text-gray-500 line-through">
-                    {formatPrice(product.originalPrice)}
-                  </span>
-                  <span className="px-3 py-1 bg-red-500 text-white text-sm font-bold rounded-full">
-                    -{Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}%
-                  </span>
-                </div>
-              )}
             </div>
 
-            {/* Color Selector - Only show if product has colors */}
-            {product.colors && product.colors.length > 0 && (
-              <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-3">
-                  Color: <span className="text-[#9146FF]">
-                    {product.colors[selectedColor >= 0 && selectedColor < product.colors.length ? selectedColor : 0]?.name || 'Selecciona un color'}
-                  </span>
-                </label>
-                <div className="flex flex-wrap gap-3">
-                  {product.colors.map((color, index) => (
-                    <button
-                      key={index}
-                      onClick={() => handleColorChange(index)}
-                      className={`relative w-14 h-14 rounded-full border-3 transition-all ${
-                        selectedColor === index
-                          ? 'border-[#9146FF] ring-4 ring-[#9146FF]/30 scale-110'
-                          : 'border-gray-300 hover:border-gray-400 hover:scale-105'
-                      }`}
-                      title={color.name}
-                    >
-                      <div
-                        className="w-full h-full rounded-full shadow-inner"
-                        style={{ backgroundColor: color.hex }}
-                      ></div>
-                      {selectedColor === index && (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="w-4 h-4 bg-white rounded-full border-2 border-[#9146FF] shadow-md"></div>
-                        </div>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Quantity Selector */}
             <div>
               <label className="block text-sm font-semibold text-gray-900 mb-3">
                 Cantidad
@@ -314,58 +231,72 @@ export function ProductDetail() {
               </div>
             </div>
 
-            {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-3">
               <button
-                onClick={() => {
-                  for (let i = 0; i < quantity; i++) {
-                    addToCart({
-                      id: product.id,
-                      name: product.name,
-                      price: product.price,
-                      image: displayImages[0],
-                      selectedColor: product.colors && product.colors[selectedColor] ? product.colors[selectedColor].name : undefined
-                    });
-                  }
-                  showToast(product.name);
-                }}
-                className="flex-1 flex items-center justify-center gap-3 px-6 py-4 bg-[#9146FF] text-white rounded-xl font-bold hover:bg-[#772CE8] transition-all shadow-lg hover:shadow-xl hover:scale-105"
+                onClick={addQuantityToCart}
+                disabled={product.stock === 0}
+                className="flex-1 flex items-center justify-center gap-3 px-6 py-4 bg-[#9146FF] text-white rounded-xl font-bold hover:bg-[#772CE8] transition-all shadow-lg hover:shadow-xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
                 <ShoppingCart className="w-5 h-5" />
                 Añadir al Carrito
               </button>
               <button
                 onClick={() => {
-                  for (let i = 0; i < quantity; i++) {
-                    addToCart({
-                      id: product.id,
-                      name: product.name,
-                      price: product.price,
-                      image: displayImages[0],
-                      selectedColor: product.colors && product.colors[selectedColor] ? product.colors[selectedColor].name : undefined
-                    });
-                  }
-                  showToast(product.name);
+                  addQuantityToCart();
                   setTimeout(() => navigate('/carrito'), 500);
                 }}
-                className="flex-1 px-6 py-4 bg-gray-900 text-white rounded-xl font-bold hover:bg-black transition-all shadow-lg hover:shadow-xl hover:scale-105"
+                disabled={product.stock === 0}
+                className="flex-1 px-6 py-4 bg-gray-900 text-white rounded-xl font-bold hover:bg-black transition-all shadow-lg hover:shadow-xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
                 Comprar Ahora
               </button>
             </div>
 
-            {/* Secondary Actions */}
             <div className="flex gap-3">
-              <button className="flex-1 flex items-center justify-center gap-2 px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-all">
-                <Heart className="w-5 h-5" />
-                Lista de deseos
+              <button
+                onClick={async () => {
+                  if (!isAuthenticated) {
+                    showError(
+                      'Inicia sesión',
+                      'Necesitas tener una cuenta para guardar favoritos'
+                    );
+                    navigate('/login');
+                    return;
+                  }
+                  const wasFavorite = isFavorite(product.id);
+                  try {
+                    await toggle(product.id);
+                    if (wasFavorite) {
+                      showSuccess('Eliminado de favoritos', product.name);
+                    } else {
+                      showSuccess('Agregado a favoritos', product.name);
+                    }
+                  } catch (e) {
+                    showError(
+                      'No se pudo actualizar favoritos',
+                      e instanceof Error ? e.message : 'Inténtalo de nuevo'
+                    );
+                  }
+                }}
+                disabled={favoritePending}
+                className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 border-2 rounded-lg font-semibold transition-all disabled:opacity-60 disabled:cursor-not-allowed ${
+                  isFavorite(product.id)
+                    ? 'border-[#9146FF] bg-[#F5F0FF] text-[#9146FF] hover:bg-[#EBE0FF]'
+                    : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                <Heart
+                  className={`w-5 h-5 ${
+                    isFavorite(product.id) ? 'fill-[#9146FF] text-[#9146FF]' : ''
+                  }`}
+                />
+                {isFavorite(product.id) ? 'En tus favoritos' : 'Favoritos'}
               </button>
               <button className="flex items-center justify-center gap-2 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-all">
                 <Share2 className="w-5 h-5" />
               </button>
             </div>
 
-            {/* People Viewing */}
             <div className="flex items-center gap-3 p-4 bg-orange-50 border border-orange-200 rounded-xl">
               <Eye className="w-5 h-5 text-orange-600" />
               <span className="text-sm text-orange-800">
@@ -373,7 +304,6 @@ export function ProductDetail() {
               </span>
             </div>
 
-            {/* Shipping Info */}
             <div className="space-y-3 p-6 bg-gray-50 rounded-xl border-2 border-gray-200">
               <div className="flex items-start gap-3">
                 <Package className="w-5 h-5 text-[#9146FF] flex-shrink-0 mt-1" />
@@ -411,40 +341,28 @@ export function ProductDetail() {
               </div>
             </div>
 
-            {/* Payment Methods */}
             <div className="p-6 bg-white border-2 border-gray-200 rounded-xl">
               <div className="flex items-center gap-2 mb-4">
                 <CreditCard className="w-5 h-5 text-gray-600" />
                 <span className="font-semibold text-gray-900">Métodos de pago:</span>
               </div>
               <div className="flex flex-wrap items-center gap-3">
-                <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold text-gray-700">
-                  PSE
-                </div>
-                <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold text-gray-700">
-                  NEQUI
-                </div>
-                <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold text-gray-700">
-                  VISA
-                </div>
-                <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold text-gray-700">
-                  MASTERCARD
-                </div>
-                <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold text-gray-700">
-                  AMEX
-                </div>
+                <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold text-gray-700">PSE</div>
+                <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold text-gray-700">NEQUI</div>
+                <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold text-gray-700">VISA</div>
+                <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold text-gray-700">MASTERCARD</div>
+                <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold text-gray-700">AMEX</div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Description and Specifications Tabs */}
-        <div className="mt-16">
-          <div className="border-b-2 border-gray-200 mb-8">
-            <div className="flex gap-8">
+        <div className="mt-10 sm:mt-16">
+          <div className="border-b-2 border-gray-200 mb-6 sm:mb-8">
+            <div className="flex gap-6 sm:gap-8">
               <button
                 onClick={() => setActiveTab('description')}
-                className={`pb-4 px-2 font-bold transition-all ${
+                className={`pb-3 sm:pb-4 px-1 sm:px-2 font-bold text-sm sm:text-base transition-all ${
                   activeTab === 'description'
                     ? 'text-[#9146FF] border-b-4 border-[#9146FF]'
                     : 'text-gray-600 hover:text-gray-900'
@@ -454,7 +372,7 @@ export function ProductDetail() {
               </button>
               <button
                 onClick={() => setActiveTab('specifications')}
-                className={`pb-4 px-2 font-bold transition-all ${
+                className={`pb-3 sm:pb-4 px-1 sm:px-2 font-bold text-sm sm:text-base transition-all ${
                   activeTab === 'specifications'
                     ? 'text-[#9146FF] border-b-4 border-[#9146FF]'
                     : 'text-gray-600 hover:text-gray-900'
@@ -466,25 +384,14 @@ export function ProductDetail() {
           </div>
 
           {activeTab === 'description' && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-12">
               <div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">
                   Descripción del Producto
                 </h3>
-                <p className="text-gray-700 leading-relaxed mb-6">
-                  {product.description}
+                <p className="text-gray-700 leading-relaxed mb-6 whitespace-pre-line">
+                  {product.description || 'Este producto aún no tiene una descripción detallada.'}
                 </p>
-                <h4 className="text-xl font-bold text-gray-900 mb-3">
-                  Características Principales
-                </h4>
-                <ul className="space-y-2">
-                  {product.features.map((feature, index) => (
-                    <li key={index} className="flex items-start gap-3">
-                      <div className="w-2 h-2 rounded-full bg-[#9146FF] mt-2 flex-shrink-0"></div>
-                      <span className="text-gray-700">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
               </div>
               <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-8 border-2 border-gray-200 flex items-center justify-center">
                 <ImageWithFallback
@@ -503,17 +410,23 @@ export function ProductDetail() {
                   Especificaciones Técnicas
                 </h3>
               </div>
-              <div className="divide-y divide-gray-200">
-                {product.specifications.map((spec, index) => (
-                  <div
-                    key={index}
-                    className="grid grid-cols-1 sm:grid-cols-3 gap-4 px-6 py-4 hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="font-semibold text-gray-900">{spec.label}</div>
-                    <div className="sm:col-span-2 text-gray-700">{spec.value}</div>
-                  </div>
-                ))}
-              </div>
+              {product.specifications.length === 0 ? (
+                <div className="px-6 py-8 text-center text-gray-500">
+                  Este producto aún no tiene especificaciones registradas.
+                </div>
+              ) : (
+                <div className="divide-y divide-gray-200">
+                  {product.specifications.map((spec, index) => (
+                    <div
+                      key={index}
+                      className="grid grid-cols-1 sm:grid-cols-3 gap-4 px-6 py-4 hover:bg-gray-50 transition-colors"
+                    >
+                      <div className="font-semibold text-gray-900">{spec.label}</div>
+                      <div className="sm:col-span-2 text-gray-700">{spec.value}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
