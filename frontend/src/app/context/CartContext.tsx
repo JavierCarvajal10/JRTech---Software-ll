@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
+import { NUMERIC_LIMITS } from '../lib/validation';
 
 export interface CartItem {
   id: number;
@@ -50,9 +51,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    // Solo enteros y con tope máximo por item (evita cantidades absurdas).
+    const safeQuantity = Math.min(
+      Math.floor(quantity),
+      NUMERIC_LIMITS.cartQuantity.max
+    );
+
     setItems((prevItems) =>
       prevItems.map((item) =>
-        item.id === id ? { ...item, quantity } : item
+        item.id === id ? { ...item, quantity: safeQuantity } : item
       )
     );
   };
