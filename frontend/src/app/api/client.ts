@@ -1,3 +1,5 @@
+import { getAuthToken, clearAuthToken } from "./token";
+
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
 type RequestOptions = Omit<RequestInit, "body"> & { body?: unknown };
@@ -25,6 +27,10 @@ export async function apiRequest<T>(
 ): Promise<T> {
   const { body, headers, ...rest } = options;
 
+  // Token JWT en localStorage como FALLBACK a la cookie (necesario para
+  // iOS/Safari móvil, que descarta cookies cross-site).
+  const token = getAuthToken();
+
   let response: Response;
   try {
     response = await fetch(`${API_URL}${path}`, {
@@ -33,6 +39,7 @@ export async function apiRequest<T>(
       credentials: "include",
       headers: {
         "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...headers,
       },
       body: body !== undefined ? JSON.stringify(body) : undefined,
@@ -45,6 +52,12 @@ export async function apiRequest<T>(
   }
 
   if (!response.ok) {
+    // Si el servidor rechaza con 401, el token guardado ya no sirve: lo
+    // borramos para evitar que se siga enviando un token muerto.
+    if (response.status === 401) {
+      clearAuthToken();
+    }
+
     let serverMessage: string | undefined;
     let code: string | undefined;
     try {
