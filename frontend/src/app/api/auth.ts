@@ -1,4 +1,5 @@
 import { apiRequest } from "./client";
+import { setAuthToken, clearAuthToken } from "./token";
 
 export type Role = "OWNER" | "ADMIN" | "CLIENTE";
 
@@ -42,6 +43,8 @@ export const login = async (email: string, password: string): Promise<AuthRespon
     method: "POST",
     body: { email, password },
   });
+  // Guardamos el token como FALLBACK a la cookie (necesario para iOS/Safari móvil).
+  setAuthToken(res.data.token);
   return res.data;
 };
 
@@ -50,6 +53,7 @@ export const register = async (input: RegisterInput): Promise<AuthResponse> => {
     method: "POST",
     body: input,
   });
+  setAuthToken(res.data.token);
   return res.data;
 };
 
@@ -59,7 +63,13 @@ export const fetchMe = async (): Promise<AuthUser> => {
 };
 
 export const logout = async (): Promise<void> => {
-  await apiRequest("/api/auth/logout", { method: "POST" });
+  try {
+    await apiRequest("/api/auth/logout", { method: "POST" });
+  } finally {
+    // Aun si la llamada falla (red, 401, etc.), borramos el token local
+    // para que el cliente quede en estado "no autenticado".
+    clearAuthToken();
+  }
 };
 
 export const requestPasswordReset = async (email: string): Promise<void> => {
