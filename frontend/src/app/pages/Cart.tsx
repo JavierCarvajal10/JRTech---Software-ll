@@ -172,7 +172,8 @@ export function Cart() {
     const orderRef = confirmedOrderId ? `Pedido #${confirmedOrderId}\n\n` : '';
     const message = `¡Hola! Acabo de realizar una compra en JeroTech.\n\n${orderRef}Datos del pedido:\n${items.map(item => `- ${item.name} (x${item.quantity})`).join('\n')}\n\nTotal: $${getTotalPrice().toLocaleString('es-CO')}\n\nDatos de contacto:\nNombre: ${formData.firstName} ${formData.lastName}\nEmail: ${formData.email}\nTeléfono: ${formData.phone}\nDirección: ${formData.address}, ${formData.city}, ${formData.department}`;
 
-    const phoneNumber = '573001234567'; // Reemplazar con número real
+    // Número real de WhatsApp de JeroTech (mismo del Footer).
+    const phoneNumber = '573153554193';
     const encodedMessage = encodeURIComponent(message);
     window.open(`https://wa.me/${phoneNumber}?text=${encodedMessage}`, '_blank');
 
