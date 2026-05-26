@@ -97,7 +97,7 @@ export function AdminSettings() {
             <input
               type="text"
               maxLength={20}
-              defaultValue="+57 300 000 0000"
+              defaultValue="+57 315 355 4193"
               className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9146FF] focus:border-[#9146FF]"
             />
           </div>
@@ -109,7 +109,7 @@ export function AdminSettings() {
             <input
               type="email"
               maxLength={254}
-              defaultValue="contacto@jerotech.com"
+              defaultValue="Vjero75@gmail.com"
               className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9146FF] focus:border-[#9146FF]"
             />
           </div>
@@ -133,7 +133,7 @@ export function AdminSettings() {
             <input
               type="text"
               maxLength={200}
-              defaultValue="Calle 10 # 5-20, Centro"
+              defaultValue="Ibagué, Tolima (atención en línea)"
               className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9146FF] focus:border-[#9146FF]"
             />
           </div>
