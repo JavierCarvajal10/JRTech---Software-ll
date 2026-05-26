@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Package, MessageCircle, CheckCircle, DollarSign, Shield, Clock, Loader2 } from 'lucide-react';
 import { submitImport } from '../api/imports';
 import { friendlyErrorMessage } from '../api/client';
-import { FIELD_LIMITS, PATTERNS, MESSAGES } from '../lib/validation';
+import { FIELD_LIMITS, PATTERNS, MESSAGES, NUMERIC_LIMITS, blockInvalidNumberKeys } from '../lib/validation';
 
 export function Importaciones() {
   const [formData, setFormData] = useState({
@@ -39,13 +39,18 @@ export function Importaciones() {
     else if (formData.referenceLink.length > FIELD_LIMITS.url)
       e.referenceLink = MESSAGES.maxLength(FIELD_LIMITS.url);
 
+    const price = Number(formData.price);
     if (!formData.price.trim()) e.price = MESSAGES.required;
-    else if (Number.isNaN(Number(formData.price)) || Number(formData.price) <= 0)
-      e.price = 'Ingresa un precio válido mayor a 0';
+    else if (Number.isNaN(price) || price <= 0) e.price = MESSAGES.positive;
+    else if (price > NUMERIC_LIMITS.priceUSD.max)
+      e.price = MESSAGES.max(NUMERIC_LIMITS.priceUSD.max);
 
     const qty = Number(formData.quantity);
-    if (!formData.quantity || Number.isNaN(qty) || qty < 1)
-      e.quantity = 'La cantidad debe ser al menos 1';
+    if (!formData.quantity || Number.isNaN(qty) || qty < NUMERIC_LIMITS.importQuantity.min)
+      e.quantity = MESSAGES.positive;
+    else if (!Number.isInteger(qty)) e.quantity = MESSAGES.integer;
+    else if (qty > NUMERIC_LIMITS.importQuantity.max)
+      e.quantity = MESSAGES.max(NUMERIC_LIMITS.importQuantity.max);
 
     if (formData.specifications.length > FIELD_LIMITS.description)
       e.specifications = MESSAGES.maxLength(FIELD_LIMITS.description);
@@ -388,7 +393,10 @@ export function Importaciones() {
                           name="price"
                           value={formData.price}
                           onChange={handleInputChange}
-                          min="0"
+                          onKeyDown={blockInvalidNumberKeys(true)}
+                          onWheel={(e) => e.currentTarget.blur()}
+                          min={NUMERIC_LIMITS.priceUSD.min}
+                          max={NUMERIC_LIMITS.priceUSD.max}
                           step="any"
                           placeholder="999"
                           className={`w-full pl-8 pr-4 py-3 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9146FF] focus:border-[#9146FF] transition-all ${
@@ -411,8 +419,11 @@ export function Importaciones() {
                         name="quantity"
                         value={formData.quantity}
                         onChange={handleInputChange}
-                        min="1"
-                        max="999"
+                        onKeyDown={blockInvalidNumberKeys()}
+                        onWheel={(e) => e.currentTarget.blur()}
+                        step="1"
+                        min={NUMERIC_LIMITS.importQuantity.min}
+                        max={NUMERIC_LIMITS.importQuantity.max}
                         className={`w-full px-4 py-3 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9146FF] focus:border-[#9146FF] transition-all ${
                           errors.quantity ? 'border-red-500 bg-red-50' : 'border-gray-300'
                         }`}
