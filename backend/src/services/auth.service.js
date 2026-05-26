@@ -9,6 +9,7 @@ import {
 import { hashPassword, comparePassword } from "../utils/hash.js";
 import { sendPasswordResetEmail } from "./email.service.js";
 import { AppError } from "../utils/errors.js";
+import { validatePasswordStrength } from "../utils/password.js";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
 
@@ -38,9 +39,7 @@ export const registerUser = async (data) => {
     throw new AppError("Email, contraseña, primer nombre y primer apellido son obligatorios");
   }
 
-  if (password.length < 6) {
-    throw new AppError("La contraseña debe tener al menos 6 caracteres");
-  }
+  validatePasswordStrength(password);
 
   const existingUser = await findUserByEmail(email.toLowerCase());
   if (existingUser) {
@@ -139,9 +138,7 @@ export const requestPasswordReset = async (email) => {
 
 export const resetPassword = async (rawToken, newPassword) => {
   if (!rawToken) throw new AppError("Token de recuperación inválido");
-  if (!newPassword || newPassword.length < 6) {
-    throw new AppError("La nueva contraseña debe tener al menos 6 caracteres");
-  }
+  validatePasswordStrength(newPassword);
 
   const tokenHash = hashResetToken(rawToken);
   const user = await findUserByResetTokenHash(tokenHash);
