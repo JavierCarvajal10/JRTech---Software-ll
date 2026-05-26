@@ -4,7 +4,7 @@ import { Loader2, Eye, EyeOff, CheckCircle, AlertCircle } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { resetPassword } from '../api/auth';
 import { friendlyErrorMessage } from '../api/client';
-import { FIELD_LIMITS, MIN_PASSWORD, MESSAGES } from '../lib/validation';
+import { PASSWORD_RULES, MIN_PASSWORD, MESSAGES, getPasswordError } from '../lib/validation';
 
 interface FormValues {
   newPassword: string;
@@ -98,13 +98,12 @@ export function ResetPassword() {
                 <div className="relative">
                   <input
                     type={showPassword ? 'text' : 'password'}
-                    maxLength={FIELD_LIMITS.password}
+                    maxLength={PASSWORD_RULES.max}
                     {...form.register('newPassword', {
                       required: 'Contraseña obligatoria',
-                      minLength: { value: MIN_PASSWORD, message: MESSAGES.minLength(MIN_PASSWORD) },
-                      maxLength: { value: FIELD_LIMITS.password, message: MESSAGES.maxLength(FIELD_LIMITS.password) },
+                      validate: (v) => getPasswordError(v) ?? true,
                     })}
-                    placeholder="Nueva contraseña"
+                    placeholder={`Mínimo ${MIN_PASSWORD} caracteres, 1 mayúscula y 1 número`}
                     className="w-full px-4 py-3 bg-gray-100 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9146FF] transition-all"
                   />
                   <button
@@ -125,10 +124,9 @@ export function ResetPassword() {
               <div>
                 <input
                   type={showPassword ? 'text' : 'password'}
-                  maxLength={FIELD_LIMITS.password}
+                  maxLength={PASSWORD_RULES.max}
                   {...form.register('confirm', {
                     required: 'Confirma tu contraseña',
-                    maxLength: { value: FIELD_LIMITS.password, message: MESSAGES.maxLength(FIELD_LIMITS.password) },
                     validate: (value) =>
                       value === newPasswordValue || MESSAGES.passwordsDontMatch,
                   })}

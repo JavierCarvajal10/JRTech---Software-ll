@@ -29,7 +29,7 @@ import {
 import { friendlyErrorMessage } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { FIELD_LIMITS, MIN_PASSWORD, PATTERNS, MESSAGES } from '../lib/validation';
+import { FIELD_LIMITS, MIN_PASSWORD, PASSWORD_RULES, PATTERNS, MESSAGES, getPasswordError } from '../lib/validation';
 
 const INPUT_CLASS =
   'w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9146FF] focus:border-[#9146FF] transition-all disabled:opacity-60 disabled:cursor-not-allowed';
@@ -340,12 +340,9 @@ function SecurityTab() {
     e.preventDefault();
     setValidationError(null);
 
-    if (form.newPassword.length < MIN_PASSWORD) {
-      setValidationError(MESSAGES.minLength(MIN_PASSWORD));
-      return;
-    }
-    if (form.newPassword.length > FIELD_LIMITS.password) {
-      setValidationError(MESSAGES.maxLength(FIELD_LIMITS.password));
+    const passwordError = getPasswordError(form.newPassword);
+    if (passwordError) {
+      setValidationError(passwordError);
       return;
     }
     if (form.newPassword !== form.confirm) {
@@ -381,12 +378,12 @@ function SecurityTab() {
             className={INPUT_CLASS}
           />
         </Field>
-        <Field label={`Nueva contraseña (mín. ${MIN_PASSWORD} caracteres)`} required>
+        <Field label={`Nueva contraseña (mín. ${MIN_PASSWORD}, 1 mayúscula y 1 número)`} required>
           <input
             type="password"
             required
             minLength={MIN_PASSWORD}
-            maxLength={FIELD_LIMITS.password}
+            maxLength={PASSWORD_RULES.max}
             value={form.newPassword}
             onChange={(e) => setForm({ ...form, newPassword: e.target.value })}
             className={INPUT_CLASS}

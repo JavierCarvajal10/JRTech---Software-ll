@@ -84,6 +84,7 @@ export function AdminSettings() {
             </label>
             <input
               type="text"
+              maxLength={80}
               defaultValue="JeroTech"
               className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9146FF] focus:border-[#9146FF]"
             />
@@ -95,6 +96,7 @@ export function AdminSettings() {
             </label>
             <input
               type="text"
+              maxLength={20}
               defaultValue="+57 300 000 0000"
               className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9146FF] focus:border-[#9146FF]"
             />
@@ -106,6 +108,7 @@ export function AdminSettings() {
             </label>
             <input
               type="email"
+              maxLength={254}
               defaultValue="contacto@jerotech.com"
               className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9146FF] focus:border-[#9146FF]"
             />
@@ -117,6 +120,7 @@ export function AdminSettings() {
             </label>
             <input
               type="text"
+              maxLength={80}
               defaultValue="Ibagué, Tolima"
               className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9146FF] focus:border-[#9146FF]"
             />
@@ -128,6 +132,7 @@ export function AdminSettings() {
             </label>
             <input
               type="text"
+              maxLength={200}
               defaultValue="Calle 10 # 5-20, Centro"
               className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9146FF] focus:border-[#9146FF]"
             />
@@ -139,6 +144,7 @@ export function AdminSettings() {
             </label>
             <input
               type="text"
+              maxLength={80}
               defaultValue="Lun - Sáb: 9am - 7pm"
               className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9146FF] focus:border-[#9146FF]"
             />

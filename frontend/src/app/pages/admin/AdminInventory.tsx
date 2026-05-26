@@ -104,6 +104,7 @@ export function AdminInventory() {
           <div className="md:col-span-2 relative">
             <input
               type="text"
+              maxLength={100}
               placeholder="Buscar producto..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}

@@ -1,17 +1,47 @@
+import { useState, useLayoutEffect } from 'react';
 import headerVideo from '../../assets/videoHeader.mp4';
 import posterImage from '../../assets/imagenHeader.png';
 import { Link } from 'react-router';
 
 export function Header() {
+  // En tablet/escritorio el banner debe llenar el alto del viewport menos el
+  // navbar. La altura del navbar varía (en escritorio tiene una segunda fila
+  // de categorías), así que la MEDIMOS en runtime para que el cálculo sea
+  // exacto en cualquier dispositivo. En móvil (<640px) se deja en altura
+  // automática, porque ahí el video va apilado con el texto y se ve bien.
+  const [bannerHeight, setBannerHeight] = useState<string | undefined>(undefined);
+
+  useLayoutEffect(() => {
+    const updateHeight = () => {
+      const isMobile = window.innerWidth < 640; // breakpoint sm de Tailwind
+      if (isMobile) {
+        setBannerHeight(undefined);
+        return;
+      }
+      const navHeight = document.querySelector('nav')?.offsetHeight ?? 0;
+      setBannerHeight(`calc(100vh - ${navHeight}px)`);
+    };
+
+    updateHeight();
+    window.addEventListener('resize', updateHeight);
+    return () => window.removeEventListener('resize', updateHeight);
+  }, []);
+
+  const fillsScreen = bannerHeight !== undefined;
+
   return (
-    <header className="relative w-full bg-[#F5F0FF] overflow-hidden">
+    <header
+      className="relative w-full bg-[#F5F0FF] overflow-hidden"
+      style={{ height: bannerHeight }}
+    >
       {/* Video del banner: se reproduce solo, en silencio y en bucle.
           - autoPlay + muted: necesario para que los navegadores permitan
             la reproducción automática.
           - playsInline: evita que iOS lo abra en pantalla completa.
           - poster: muestra la imagen mientras el video carga.
-          max-h: nunca supera el viewport menos el navbar, así siempre
-          cabe en pantalla sin necesidad de scroll. */}
+          - Móvil: h-auto + object-contain (respeta la proporción).
+          - Tablet/escritorio: h-full + object-cover, así CUBRE todo el alto
+            calculado y no queda ninguna franja vacía debajo. */}
       <video
         src={headerVideo}
         poster={posterImage}
@@ -20,7 +50,9 @@ export function Header() {
         loop
         playsInline
         aria-label="Productos tecnológicos"
-        className="block w-full h-auto max-h-[calc(100vh-72px)] object-contain mx-auto"
+        className={`block w-full mx-auto ${
+          fillsScreen ? 'h-full object-cover object-center' : 'h-auto object-contain'
+        }`}
       />
 
       {/* Texto del banner.

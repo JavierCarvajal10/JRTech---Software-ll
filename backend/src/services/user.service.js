@@ -14,6 +14,7 @@ import {
 } from "../repositories/auth.repository.js";
 import { hashPassword, comparePassword } from "../utils/hash.js";
 import { ROLES } from "../config/roles.js";
+import { validatePasswordStrength } from "../utils/password.js";
 
 const publicUser = (user) => ({
   id: user.id,
@@ -95,9 +96,7 @@ export const changePassword = async (userId, currentPassword, newPassword) => {
   if (!currentPassword || !newPassword) {
     throw new Error("Debes ingresar tu contraseña actual y la nueva");
   }
-  if (newPassword.length < 6) {
-    throw new Error("La nueva contraseña debe tener al menos 6 caracteres");
-  }
+  validatePasswordStrength(newPassword);
   if (currentPassword === newPassword) {
     throw new Error("La nueva contraseña debe ser diferente a la actual");
   }
@@ -172,9 +171,7 @@ export const createAdminUser = async (data) => {
   if (!email || !password || !primerNombre || !primerApellido) {
     throw new Error("Email, contraseña, primer nombre y primer apellido son obligatorios");
   }
-  if (password.length < 6) {
-    throw new Error("La contraseña debe tener al menos 6 caracteres");
-  }
+  validatePasswordStrength(password);
 
   const normalizedEmail = email.toLowerCase();
   const existing = await findUserByEmail(normalizedEmail);
