@@ -129,6 +129,7 @@ export function AdminImports() {
           <div className="md:col-span-2 relative">
             <input
               type="text"
+              maxLength={100}
               placeholder="Buscar por ID, cliente, producto, teléfono o email..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}

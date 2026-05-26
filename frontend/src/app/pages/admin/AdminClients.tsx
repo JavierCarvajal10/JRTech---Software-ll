@@ -105,6 +105,7 @@ export function AdminClients() {
         <div className="relative">
           <input
             type="text"
+            maxLength={100}
             placeholder="Buscar por nombre, email o teléfono..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}

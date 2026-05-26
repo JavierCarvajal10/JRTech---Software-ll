@@ -117,6 +117,7 @@ export function AdminOrders() {
           <div className="md:col-span-2 relative">
             <input
               type="text"
+              maxLength={100}
               placeholder="Buscar por número de pedido, nombre o email..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}

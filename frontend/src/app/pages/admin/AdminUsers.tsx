@@ -11,7 +11,7 @@ import { useAuth } from "../../context/AuthContext";
 import { friendlyErrorMessage } from "../../api/client";
 import { useToast } from "../../context/ToastContext";
 import { ErrorState } from "../../components/admin/ErrorState";
-import { FIELD_LIMITS, MIN_PASSWORD, PATTERNS, MESSAGES } from "../../lib/validation";
+import { FIELD_LIMITS, MIN_PASSWORD, PASSWORD_RULES, PATTERNS, MESSAGES, getPasswordError } from "../../lib/validation";
 
 const ROLE_BADGE: Record<string, string> = {
   OWNER: "bg-amber-100 text-amber-800 border-amber-200",
@@ -278,10 +278,10 @@ function CreateAdminModal({
     else if (form.email.length > FIELD_LIMITS.email)
       e.email = MESSAGES.maxLength(FIELD_LIMITS.email);
     if (!form.password) e.password = MESSAGES.required;
-    else if (form.password.length < MIN_PASSWORD)
-      e.password = MESSAGES.minLength(MIN_PASSWORD);
-    else if (form.password.length > FIELD_LIMITS.password)
-      e.password = MESSAGES.maxLength(FIELD_LIMITS.password);
+    else {
+      const pwdError = getPasswordError(form.password);
+      if (pwdError) e.password = pwdError;
+    }
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -341,12 +341,12 @@ function CreateAdminModal({
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9146FF]"
             />
           </Field>
-          <Field label={`Contraseña (mín. ${MIN_PASSWORD} caracteres)`} required error={errors.password}>
+          <Field label={`Contraseña (mín. ${MIN_PASSWORD}, 1 mayúscula y 1 número)`} required error={errors.password}>
             <input
               type="password"
               required
               minLength={MIN_PASSWORD}
-              maxLength={FIELD_LIMITS.password}
+              maxLength={PASSWORD_RULES.max}
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9146FF]"

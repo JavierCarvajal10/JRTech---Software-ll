@@ -27,10 +27,39 @@ export const FIELD_LIMITS = {
   chatMessage: 2000,
 } as const;
 
-// Mínimos donde aplica. No tocamos mínimos existentes (ej: password = 6 en
-// ResetPassword) para no romper flujos en producción — solo se referencian
-// desde formularios nuevos o donde el usuario lo pida explícitamente.
-export const MIN_PASSWORD = 6;
+// Reglas de contraseña SEGURA. Solo aplican al CREAR/cambiar contraseña
+// (registro, restablecer, cambiar, crear usuario admin). El login NO las usa,
+// para no bloquear a usuarios con contraseñas antiguas más débiles.
+export const PASSWORD_RULES = {
+  min: 8,
+  max: 64,
+} as const;
+
+// MIN_PASSWORD se mantiene por compatibilidad con imports existentes y ahora
+// refleja el nuevo mínimo seguro.
+export const MIN_PASSWORD = PASSWORD_RULES.min;
+
+const PASSWORD_PATTERNS = {
+  uppercase: /[A-Z]/,
+  number: /\d/,
+} as const;
+
+/**
+ * Valida la fortaleza de una contraseña nueva.
+ * Devuelve un mensaje de error si NO cumple, o `null` si es válida.
+ * Sirve tanto para react-hook-form (`validate`) como para validación manual.
+ */
+export function getPasswordError(value: string): string | null {
+  if (!value || value.length < PASSWORD_RULES.min)
+    return `Debe tener al menos ${PASSWORD_RULES.min} caracteres`;
+  if (value.length > PASSWORD_RULES.max)
+    return `No puede superar ${PASSWORD_RULES.max} caracteres`;
+  if (!PASSWORD_PATTERNS.uppercase.test(value))
+    return "Debe incluir al menos una mayúscula";
+  if (!PASSWORD_PATTERNS.number.test(value))
+    return "Debe incluir al menos un número";
+  return null;
+}
 
 // Límites numéricos para precios, stock y cantidades. Mantener sincronizado
 // con las validaciones del backend (ver backend/src/utils/numbers.js).
