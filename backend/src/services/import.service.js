@@ -7,6 +7,7 @@ import {
   deleteImport,
 } from "../repositories/import.repository.js";
 import { findProductById } from "../repositories/product.repository.js";
+import { validateNumber, NUM_LIMITS } from "../utils/numbers.js";
 
 export const ESTADOS_IMPORTACION = [
   "PENDIENTE",
@@ -44,15 +45,15 @@ export const submitImport = async (data) => {
     throw new Error("Nombre, teléfono y producto son obligatorios");
   }
 
-  const cantidadNum = cantidad != null ? Number(cantidad) : null;
-  if (cantidadNum != null && (Number.isNaN(cantidadNum) || cantidadNum <= 0)) {
-    throw new Error("La cantidad debe ser un número mayor a 0");
-  }
+  const cantidadNum =
+    cantidad != null && cantidad !== ""
+      ? validateNumber(cantidad, "La cantidad", NUM_LIMITS.importQuantity)
+      : null;
 
-  const presupuestoNum = presupuesto != null && presupuesto !== "" ? Number(presupuesto) : null;
-  if (presupuestoNum != null && (Number.isNaN(presupuestoNum) || presupuestoNum < 0)) {
-    throw new Error("El presupuesto debe ser un número válido");
-  }
+  const presupuestoNum =
+    presupuesto != null && presupuesto !== ""
+      ? validateNumber(presupuesto, "El presupuesto", { ...NUM_LIMITS.priceUSD, integer: false })
+      : null;
 
   return await createImport({
     nombre: nombre.trim(),

@@ -8,6 +8,7 @@ import {
   setBajoImportacion as setBajoImportacionRepo,
 } from "../repositories/product.repository.js";
 import { indexProductEmbedding } from "./embedding.service.js";
+import { validateNumber, NUM_LIMITS } from "../utils/numbers.js";
 
 const validateImageUrls = (urls) => {
   if (!Array.isArray(urls)) return [];
@@ -82,15 +83,12 @@ export const createProduct = async (data) => {
     throw new Error("Los campos 'nombre' y 'precio' son obligatorios");
   }
 
-  const precioNumber = Number(precio);
-  if (Number.isNaN(precioNumber) || precioNumber < 0) {
-    throw new Error("El precio debe ser un número válido y no negativo");
-  }
-
-  const stockNumber = stock === undefined ? 0 : Number(stock);
-  if (Number.isNaN(stockNumber) || stockNumber < 0) {
-    throw new Error("El stock debe ser un número válido y no negativo");
-  }
+  const precioNumber = validateNumber(precio, "El precio", NUM_LIMITS.priceCOP);
+  // Stock vacío/ausente -> 0 por defecto.
+  const stockNumber =
+    stock == null || stock === ""
+      ? 0
+      : validateNumber(stock, "El stock", NUM_LIMITS.stock);
 
   const created = await createProductRepo({
     nombre: data.nombre,
@@ -119,8 +117,13 @@ export const updateProduct = async (id, data) => {
   const payload = {};
   if (data.nombre !== undefined) payload.nombre = data.nombre;
   if (data.descripcion !== undefined) payload.descripcion = data.descripcion;
-  if (data.precio !== undefined) payload.precio = Number(data.precio);
-  if (data.stock !== undefined) payload.stock = Number(data.stock);
+  if (data.precio !== undefined)
+    payload.precio = validateNumber(data.precio, "El precio", NUM_LIMITS.priceCOP);
+  if (data.stock !== undefined)
+    payload.stock =
+      data.stock == null || data.stock === ""
+        ? 0
+        : validateNumber(data.stock, "El stock", NUM_LIMITS.stock);
   if (data.categoriaId !== undefined)
     payload.categoriaId = data.categoriaId ? Number(data.categoriaId) : null;
   if (data.tipo !== undefined) payload.tipo = data.tipo;
