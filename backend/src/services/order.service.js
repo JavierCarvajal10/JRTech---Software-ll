@@ -5,6 +5,7 @@ import {
   createOrderWithStockDecrement,
   updateOrderStatus,
 } from "../repositories/order.repository.js";
+import { validateNumber, NUM_LIMITS } from "../utils/numbers.js";
 
 export const ESTADOS_ORDEN = [
   "PENDIENTE",
@@ -50,9 +51,10 @@ export const createOrder = async (data, usuarioId = null) => {
     throw new Error("Faltan datos del cliente: nombre, email, teléfono o dirección");
   }
   for (const it of items) {
-    if (!it.productoId || !it.cantidad || it.cantidad <= 0) {
-      throw new Error("Cada item debe tener productoId y cantidad mayor a 0");
+    if (!it.productoId) {
+      throw new Error("Cada item debe tener un productoId");
     }
+    it.cantidad = validateNumber(it.cantidad, "La cantidad", NUM_LIMITS.orderQuantity);
   }
 
   return await createOrderWithStockDecrement({
