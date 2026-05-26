@@ -1,7 +1,8 @@
-import { Search, Bell, Menu, ExternalLink, ChevronDown, User, LogOut, Crown, ShieldCheck } from 'lucide-react';
+import { Search, Bell, Menu, ExternalLink, ChevronDown, User, LogOut, Crown, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { useAuth } from '../../context/AuthContext';
+import { useAdminNotifications } from '../../hooks/useAdminNotifications';
 
 interface AdminHeaderProps {
   onMenuClick: () => void;
@@ -10,14 +11,23 @@ interface AdminHeaderProps {
 export function AdminHeader({ onMenuClick }: AdminHeaderProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const notifRef = useRef<HTMLDivElement>(null);
   const { user, logout, isOwner } = useAuth();
   const navigate = useNavigate();
 
+  // Notificaciones derivadas del estado actual (pedidos, importaciones, stock).
+  const { items: notifications, totalCount, loading: notifLoading } = useAdminNotifications();
+
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (dropdownRef.current && !dropdownRef.current.contains(target)) {
         setIsOpen(false);
+      }
+      if (notifRef.current && !notifRef.current.contains(target)) {
+        setNotifOpen(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
@@ -72,11 +82,83 @@ export function AdminHeader({ onMenuClick }: AdminHeaderProps) {
             <span className="hidden md:inline">Ver tienda</span>
           </Link>
 
-          {/* Notifications */}
-          <button className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors">
-            <Bell className="w-6 h-6 text-gray-600" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-          </button>
+          {/* Notifications: contenido derivado de pedidos pendientes,
+              importaciones pendientes y productos con stock bajo. */}
+          <div className="relative" ref={notifRef}>
+            <button
+              onClick={() => setNotifOpen((v) => !v)}
+              className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              aria-label={
+                totalCount > 0
+                  ? `${totalCount} notificaciones pendientes`
+                  : 'Notificaciones'
+              }
+            >
+              <Bell className="w-6 h-6 text-gray-600" />
+              {totalCount > 0 && (
+                <span
+                  className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white"
+                >
+                  {totalCount > 9 ? '9+' : totalCount}
+                </span>
+              )}
+            </button>
+
+            {notifOpen && (
+              <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50 animate-fadeIn">
+                <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+                  <div className="font-semibold text-gray-900">Notificaciones</div>
+                  {totalCount > 0 && (
+                    <span className="text-xs text-gray-500">
+                      {totalCount} pendiente{totalCount === 1 ? '' : 's'}
+                    </span>
+                  )}
+                </div>
+
+                {notifLoading ? (
+                  <div className="px-4 py-6 text-sm text-gray-500 text-center">
+                    Cargando…
+                  </div>
+                ) : notifications.length === 0 ? (
+                  <div className="px-4 py-6 text-center">
+                    <CheckCircle2 className="w-8 h-8 text-green-500 mx-auto mb-2" />
+                    <p className="text-sm font-medium text-gray-900">
+                      Todo al día
+                    </p>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      No tienes nada pendiente por revisar.
+                    </p>
+                  </div>
+                ) : (
+                  <ul className="py-1 max-h-80 overflow-y-auto">
+                    {notifications.map((n) => {
+                      const Icon = n.icon;
+                      return (
+                        <li
+                          key={n.id}
+                          className="flex items-start gap-3 px-4 py-3"
+                        >
+                          <div
+                            className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${n.iconClasses}`}
+                          >
+                            <Icon className="w-5 h-5" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="text-sm font-semibold text-gray-900 truncate">
+                              {n.title}
+                            </div>
+                            <div className="text-xs text-gray-600 mt-0.5">
+                              {n.description}
+                            </div>
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
+            )}
+          </div>
 
           {/* Admin Profile + Dropdown */}
           <div className="relative pl-2 sm:pl-3 border-l border-gray-200" ref={dropdownRef}>
