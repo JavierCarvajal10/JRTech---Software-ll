@@ -12,7 +12,7 @@ import type { Product } from '../../api/products';
 import { useCategories, useCreateCategory } from '../../hooks/useCategories';
 import { buildCategoryTree } from '../../api/categories';
 import { useToast } from '../../context/ToastContext';
-import { FIELD_LIMITS, PATTERNS, MESSAGES } from '../../lib/validation';
+import { FIELD_LIMITS, PATTERNS, MESSAGES, NUMERIC_LIMITS, blockInvalidNumberKeys } from '../../lib/validation';
 
 interface ProductFormValues {
   nombre: string;
@@ -394,11 +394,17 @@ export function AdminProducts() {
                   </label>
                   <input
                     type="number"
-                    step="any"
+                    step="1"
+                    min={NUMERIC_LIMITS.priceCOP.min}
+                    max={NUMERIC_LIMITS.priceCOP.max}
+                    onKeyDown={blockInvalidNumberKeys()}
+                    onWheel={(e) => e.currentTarget.blur()}
                     {...register('precio', {
                       required: 'El precio es obligatorio',
-                      min: { value: 0, message: 'Mínimo 0' },
-                      max: { value: 999999999, message: 'Precio demasiado alto' },
+                      min: { value: NUMERIC_LIMITS.priceCOP.min, message: MESSAGES.nonNegative },
+                      max: { value: NUMERIC_LIMITS.priceCOP.max, message: MESSAGES.max(NUMERIC_LIMITS.priceCOP.max) },
+                      validate: (v) =>
+                        (Number.isInteger(v) && v >= 0) || MESSAGES.integer,
                       valueAsNumber: true,
                     })}
                     className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9146FF]"
@@ -414,9 +420,17 @@ export function AdminProducts() {
                   </label>
                   <input
                     type="number"
+                    step="1"
+                    min={NUMERIC_LIMITS.stock.min}
+                    max={NUMERIC_LIMITS.stock.max}
+                    onKeyDown={blockInvalidNumberKeys()}
+                    onWheel={(e) => e.currentTarget.blur()}
                     {...register('stock', {
-                      min: { value: 0, message: 'Mínimo 0' },
-                      max: { value: 1000000, message: 'Stock demasiado alto' },
+                      min: { value: NUMERIC_LIMITS.stock.min, message: MESSAGES.nonNegative },
+                      max: { value: NUMERIC_LIMITS.stock.max, message: MESSAGES.max(NUMERIC_LIMITS.stock.max) },
+                      validate: (v) =>
+                        v === undefined || v === null || Number.isNaN(v) ||
+                        (Number.isInteger(v) && v >= 0) || MESSAGES.integer,
                       valueAsNumber: true,
                     })}
                     className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9146FF]"
